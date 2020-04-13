@@ -8,13 +8,8 @@ class AnalizadorLexico {
     estado = 0;
     salida_consola: string = "\n";
 
-    public AnalizdorLexico(entrada: string) {
+    constructor(entrada: string) {
         this.entrada = entrada;
-        this.lista = new Array<Token>();
-    }
-
-    public AnalizadorLexico() {
-        this.entrada = "";
         this.lista = new Array<Token>();
     }
 
@@ -52,6 +47,11 @@ class AnalizadorLexico {
                     } else if (chr == "}") {
                         this.auxLex += chr;
                         this.addToken(TipoToken.SYM_LLAVEDER, this.auxLex, linea, columna)
+                        this.writeSalida("Se ha encontrado Token: " + this.auxLex);
+                        this.estado = 0;
+                    }else if (chr == ".") {
+                        this.auxLex += chr;
+                        this.addToken(TipoToken.SYM_PUNTO, this.auxLex, linea, columna)
                         this.writeSalida("Se ha encontrado Token: " + this.auxLex);
                         this.estado = 0;
                     } else if (chr == ",") {
@@ -103,6 +103,9 @@ class AnalizadorLexico {
                     } else if (chr == "\"") {
                         this.auxLex += chr;
                         this.estado = 12;
+                    } else if (chr == "'") {
+                        this.auxLex += chr;
+                        this.estado = 13;
                     } else if (chr == "#" && i == size - 1) {
                         this.writeSalida("*********El analisis lexico de la entrada ha finalizado*********");
                     } else if (chr == "\n" || chr == "\t" || chr == "\r" || chr == " ") {
@@ -234,12 +237,53 @@ class AnalizadorLexico {
                         i = i - 1;
                     }
                     break;
-                case 11:
+                case 11://IDENTIFICADORES
                     if (this.isLetter(chr) || chr == "_" || this.isDigit(chr)) {
                         this.auxLex += chr;
                         this.estado = 11;
                     } else {
-                        this.addToken(TipoToken.IDENTIFICADOR, this.auxLex, linea, columna);
+                        if (this.auxLex == "int") {
+                            this.addToken(TipoToken.KW_INT, this.auxLex, linea, columna);
+                        } else if (this.auxLex == "string") {
+                            this.addToken(TipoToken.KW_STRING, this.auxLex, linea, columna);
+                        } else if (this.auxLex == "bool") {
+                            this.addToken(TipoToken.KW_BOOL, this.auxLex, linea, columna);
+                        } else if (this.auxLex == "double") {
+                            this.addToken(TipoToken.KW_DOUBLE, this.auxLex, linea, columna);
+                        } else if (this.auxLex == "char") {
+                            this.addToken(TipoToken.KW_CHAR, this.auxLex, linea, columna);
+                        } else if (this.auxLex == "void") {
+                            this.addToken(TipoToken.KW_VOID, this.auxLex, linea, columna);
+                        } else if (this.auxLex == "main") {
+                            this.addToken(TipoToken.KW_MAIN, this.auxLex, linea, columna);
+                        } else if (this.auxLex == "if") {
+                            this.addToken(TipoToken.KW_IF, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="switch"){
+                            this.addToken(TipoToken.KW_SWITCH, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="for"){
+                            this.addToken(TipoToken.KW_FOR, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="while"){
+                            this.addToken(TipoToken.KW_WHILE, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="do"){
+                            this.addToken(TipoToken.KW_DO, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="true"){
+                            this.addToken(TipoToken.KW_TRUE, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="false"){
+                            this.addToken(TipoToken.KW_FALSE, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="Console"){
+                            this.addToken(TipoToken.KW_CONSOLE, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="Write"){
+                            this.addToken(TipoToken.KW_WRITE, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="return"){
+                            this.addToken(TipoToken.KW_RETURN, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="continue"){
+                            this.addToken(TipoToken.KW_CONTINUE, this.auxLex, linea, columna);
+                        }else if(this.auxLex=="break"){
+                            this.addToken(TipoToken.KW_BREAK, this.auxLex, linea, columna);
+                        }else{
+                            this.addToken(TipoToken.IDENTIFICADOR, this.auxLex, linea, columna);                            
+                        }
+                        this.writeSalida("Se ha encontrado Token: "+this.auxLex);
                         i = i - 1;
                     }
                     break;
@@ -258,6 +302,18 @@ class AnalizadorLexico {
                     }
                     break;
                 case 13:
+                    if (chr != "'") {
+                        this.auxLex += chr;
+                        this.estado = 12;
+                        if (chr == "\n" || chr == "\r") {
+                            linea++;
+                            columna = 0;
+                        }
+                    } else {
+                        this.auxLex += chr;
+                        this.addToken(TipoToken.CADENA_HTML, this.auxLex, linea, colaux, true);
+                        this.writeSalida("Se ha encontrado Token: " + this.auxLex);
+                    }
                     break;
                 case 14:
                     break;

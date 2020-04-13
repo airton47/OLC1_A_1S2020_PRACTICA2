@@ -1,19 +1,13 @@
 "use strict";
 var Token_1 = require("./Token");
 var AnalizadorLexico = /** @class */ (function () {
-    function AnalizadorLexico() {
+    function AnalizadorLexico(entrada) {
         this.auxLex = "";
         this.estado = 0;
         this.salida_consola = "\n";
-    }
-    AnalizadorLexico.prototype.AnalizdorLexico = function (entrada) {
         this.entrada = entrada;
         this.lista = new Array();
-    };
-    AnalizadorLexico.prototype.AnalizadorLexico = function () {
-        this.entrada = "";
-        this.lista = new Array();
-    };
+    }
     AnalizadorLexico.prototype.analizar = function (texto) {
         texto += "#";
         this.entrada = texto;
@@ -48,6 +42,12 @@ var AnalizadorLexico = /** @class */ (function () {
                     else if (chr == "}") {
                         this.auxLex += chr;
                         this.addToken(Token_1.TipoToken.SYM_LLAVEDER, this.auxLex, linea, columna);
+                        this.writeSalida("Se ha encontrado Token: " + this.auxLex);
+                        this.estado = 0;
+                    }
+                    else if (chr == ".") {
+                        this.auxLex += chr;
+                        this.addToken(Token_1.TipoToken.SYM_PUNTO, this.auxLex, linea, columna);
                         this.writeSalida("Se ha encontrado Token: " + this.auxLex);
                         this.estado = 0;
                     }
@@ -112,6 +112,10 @@ var AnalizadorLexico = /** @class */ (function () {
                     else if (chr == "\"") {
                         this.auxLex += chr;
                         this.estado = 12;
+                    }
+                    else if (chr == "'") {
+                        this.auxLex += chr;
+                        this.estado = 13;
                     }
                     else if (chr == "#" && i == size - 1) {
                         this.writeSalida("*********El analisis lexico de la entrada ha finalizado*********");
@@ -258,13 +262,73 @@ var AnalizadorLexico = /** @class */ (function () {
                         i = i - 1;
                     }
                     break;
-                case 11:
+                case 11: //IDENTIFICADORES
                     if (this.isLetter(chr) || chr == "_" || this.isDigit(chr)) {
                         this.auxLex += chr;
                         this.estado = 11;
                     }
                     else {
-                        this.addToken(Token_1.TipoToken.IDENTIFICADOR, this.auxLex, linea, columna);
+                        if (this.auxLex == "int") {
+                            this.addToken(Token_1.TipoToken.KW_INT, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "string") {
+                            this.addToken(Token_1.TipoToken.KW_STRING, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "bool") {
+                            this.addToken(Token_1.TipoToken.KW_BOOL, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "double") {
+                            this.addToken(Token_1.TipoToken.KW_DOUBLE, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "char") {
+                            this.addToken(Token_1.TipoToken.KW_CHAR, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "void") {
+                            this.addToken(Token_1.TipoToken.KW_VOID, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "main") {
+                            this.addToken(Token_1.TipoToken.KW_MAIN, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "if") {
+                            this.addToken(Token_1.TipoToken.KW_IF, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "switch") {
+                            this.addToken(Token_1.TipoToken.KW_SWITCH, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "for") {
+                            this.addToken(Token_1.TipoToken.KW_FOR, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "while") {
+                            this.addToken(Token_1.TipoToken.KW_WHILE, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "do") {
+                            this.addToken(Token_1.TipoToken.KW_DO, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "true") {
+                            this.addToken(Token_1.TipoToken.KW_TRUE, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "false") {
+                            this.addToken(Token_1.TipoToken.KW_FALSE, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "Console") {
+                            this.addToken(Token_1.TipoToken.KW_CONSOLE, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "Write") {
+                            this.addToken(Token_1.TipoToken.KW_WRITE, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "return") {
+                            this.addToken(Token_1.TipoToken.KW_RETURN, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "continue") {
+                            this.addToken(Token_1.TipoToken.KW_CONTINUE, this.auxLex, linea, columna);
+                        }
+                        else if (this.auxLex == "break") {
+                            this.addToken(Token_1.TipoToken.KW_BREAK, this.auxLex, linea, columna);
+                        }
+                        else {
+                            this.addToken(Token_1.TipoToken.IDENTIFICADOR, this.auxLex, linea, columna);
+                        }
+                        this.writeSalida("Se ha encontrado Token: " + this.auxLex);
                         i = i - 1;
                     }
                     break;
@@ -284,6 +348,19 @@ var AnalizadorLexico = /** @class */ (function () {
                     }
                     break;
                 case 13:
+                    if (chr != "'") {
+                        this.auxLex += chr;
+                        this.estado = 12;
+                        if (chr == "\n" || chr == "\r") {
+                            linea++;
+                            columna = 0;
+                        }
+                    }
+                    else {
+                        this.auxLex += chr;
+                        this.addToken(Token_1.TipoToken.CADENA_HTML, this.auxLex, linea, colaux, true);
+                        this.writeSalida("Se ha encontrado Token: " + this.auxLex);
+                    }
                     break;
                 case 14:
                     break;
