@@ -18,13 +18,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var Procedimiento_1 = __importDefault(require("./Procedimiento"));
 var MetodoMain = /** @class */ (function (_super) {
     __extends(MetodoMain, _super);
-    function MetodoMain() {
-        return _super.call(this) || this;
+    function MetodoMain(sentencias) {
+        var _this = _super.call(this) || this;
+        if (sentencias != undefined) {
+            _this.addList(sentencias);
+        }
+        return _this;
     }
     MetodoMain.prototype.printSentencia = function () {
-        this.cuerpo = "I will never let you win.";
+        this.cuerpo = "\ndef " + "main(";
+        this.cuerpo += "):\n";
+        var size = 0;
+        size = this.listaSentencias.length;
+        for (var i = 0; i < size; i++) {
+            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia() + "";
+        }
+        this.cuerpo += '\nif __name__="__main__":\n';
+        this.cuerpo += '\tmain()\n';
+        //console.log(this.cuerpo);
         return this.cuerpo;
-        //throw new Error("Method not implemented.");
     };
     return MetodoMain;
 }(Procedimiento_1.default));

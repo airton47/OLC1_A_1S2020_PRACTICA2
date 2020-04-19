@@ -18,33 +18,31 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var Procedimiento_1 = __importDefault(require("./Procedimiento"));
 var Funcion = /** @class */ (function (_super) {
     __extends(Funcion, _super);
-    function Funcion(name, retorno) {
+    function Funcion(name, listpar, listinst) {
         var _this = _super.call(this) || this;
         _this.nombre = name;
-        _this.listaParametros = new Array();
-        _this.tipoRetorno = retorno;
+        if (listpar != undefined) {
+            _this.listaParametros = listpar;
+        }
+        else {
+            _this.listaParametros = "";
+        }
+        if (listinst != undefined) {
+            _this.addList(listinst);
+        }
         return _this;
     }
     Funcion.prototype.printSentencia = function () {
-        var cuerpo = "Print para Metodo";
-        cuerpo += "\ndef " + this.nombre + "(";
-        var size = this.listaParametros.length;
-        for (var i = 0; i < size; i++) {
-            if (i == size - 1) {
-                cuerpo += this.listaParametros[i];
-            }
-            else {
-                cuerpo += this.listaParametros[i] + ",";
-            }
-        }
-        cuerpo += "):\n";
-        cuerpo += "\t";
+        this.cuerpo += "\ndef " + this.nombre + "(";
+        var size = 0;
+        this.cuerpo += this.listaParametros;
+        this.cuerpo += "):\n";
         size = this.listaSentencias.length;
         for (var i = 0; i < size; i++) {
-            cuerpo += "\t" + this.listaSentencias[i].printSentencia();
+            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia();
         }
-        console.log(cuerpo);
-        return cuerpo;
+        //console.log(this.cuerpo);
+        return this.cuerpo;
     };
     return Funcion;
 }(Procedimiento_1.default));

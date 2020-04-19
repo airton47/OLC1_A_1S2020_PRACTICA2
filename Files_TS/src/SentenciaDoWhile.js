@@ -16,36 +16,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 var Sentencia_1 = __importDefault(require("./Sentencia"));
-var Declaracion = /** @class */ (function (_super) {
-    __extends(Declaracion, _super);
-    function Declaracion(name, valor) {
+var SentenciaDoWhile = /** @class */ (function (_super) {
+    __extends(SentenciaDoWhile, _super);
+    function SentenciaDoWhile(condicion, lista) {
         var _this = _super.call(this) || this;
-        _this.nombre = name;
-        if (valor != undefined) {
-            _this.expresion = valor;
+        _this.condicion = condicion;
+        if (lista != undefined) {
+            _this.sentencias = lista;
         }
         else {
-            _this.expresion = "";
+            _this.sentencias = new Array();
         }
         return _this;
     }
-    Declaracion.prototype.isEXpDefined = function () {
-        if (this.expresion == undefined || this.expresion == "") {
-            return false;
+    SentenciaDoWhile.prototype.printSentencia = function () {
+        this.cuerpo = '\nwhile True:\n';
+        var size = this.sentencias.length;
+        for (var i = 0; i < size; i++) {
+            this.cuerpo += '\t' + this.sentencias[i].printSentencia();
         }
-        else {
-            return true;
-        }
-    };
-    Declaracion.prototype.printSentencia = function () {
-        this.cuerpo = "\nvar " + this.nombre;
-        if (this.isEXpDefined()) {
-            this.cuerpo += " : ";
-            this.cuerpo += this.expresion;
-        }
-        //console.log(this.cuerpo);
+        this.cuerpo += '\n\tif (' + this.condicion + '):\n';
+        this.cuerpo += '\tbreak;';
         return this.cuerpo;
     };
-    return Declaracion;
+    return SentenciaDoWhile;
 }(Sentencia_1.default));
-module.exports = Declaracion;
+module.exports = SentenciaDoWhile;

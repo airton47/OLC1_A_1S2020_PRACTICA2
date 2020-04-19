@@ -16,36 +16,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 var Sentencia_1 = __importDefault(require("./Sentencia"));
-var Declaracion = /** @class */ (function (_super) {
-    __extends(Declaracion, _super);
-    function Declaracion(name, valor) {
+var SentenciaSwitch = /** @class */ (function (_super) {
+    __extends(SentenciaSwitch, _super);
+    function SentenciaSwitch(variable) {
         var _this = _super.call(this) || this;
-        _this.nombre = name;
-        if (valor != undefined) {
-            _this.expresion = valor;
-        }
-        else {
-            _this.expresion = "";
-        }
+        _this.variable = variable;
         return _this;
     }
-    Declaracion.prototype.isEXpDefined = function () {
-        if (this.expresion == undefined || this.expresion == "") {
-            return false;
-        }
-        else {
-            return true;
-        }
-    };
-    Declaracion.prototype.printSentencia = function () {
-        this.cuerpo = "\nvar " + this.nombre;
-        if (this.isEXpDefined()) {
-            this.cuerpo += " : ";
-            this.cuerpo += this.expresion;
-        }
-        //console.log(this.cuerpo);
+    SentenciaSwitch.prototype.printSentencia = function () {
+        this.cuerpo = '\ndef switcher(' + this.variable + '):';
         return this.cuerpo;
     };
-    return Declaracion;
+    return SentenciaSwitch;
 }(Sentencia_1.default));
-module.exports = Declaracion;
+module.exports = SentenciaSwitch;

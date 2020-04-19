@@ -1,39 +1,37 @@
 import SentenciaInterface from "./SentenciaInteface";
 import Procedimiento from "./Procedimiento";
+import Sentencia from "./Sentencia";
 
 class Funcion extends Procedimiento {
 
     nombre: string;
-    tipoRetorno: string;
-    listaParametros: Array<SentenciaInterface>;
+    listaParametros: string;
 
-    constructor(name: string,retorno:string) {
+    constructor(name: string,listpar?:string,listinst?:Array<Sentencia>) {
         super();
         this.nombre = name;
-        this.listaParametros = new Array<SentenciaInterface>();
-        this.tipoRetorno = retorno;
+        if(listpar!=undefined){
+            this.listaParametros = listpar;
+        }else{
+            this.listaParametros = "";
+        }
+        if(listinst!=undefined){
+            this.addList(listinst);
+        }
     }
 
     printSentencia(): string {
-        let cuerpo: string = "Print para Metodo";
-        cuerpo += "\ndef " + this.nombre + "(";
-        let size: number = this.listaParametros.length;
-        for (let i: number = 0; i < size; i++) {
-            if (i == size - 1) {
-                cuerpo += this.listaParametros[i];
-            } else {
-                cuerpo += this.listaParametros[i] + ",";
-            }
-        }
-        cuerpo += "):\n";
-        cuerpo += "\t";
+        this.cuerpo += "\ndef " + this.nombre + "(";
+        let size: number = 0;
+        this.cuerpo += this.listaParametros;
+        this.cuerpo += "):\n";
         size = this.listaSentencias.length;
         for (let i: number = 0; i < size; i++) {
-            cuerpo += "\t" + this.listaSentencias[i].printSentencia();
+            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia();
         }
 
-        console.log(cuerpo);
-        return cuerpo;
+        //console.log(this.cuerpo);
+        return this.cuerpo;
     }
 
 }
