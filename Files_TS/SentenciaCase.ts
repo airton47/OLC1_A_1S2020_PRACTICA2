@@ -1,6 +1,6 @@
 import Sentencia from "./Sentencia";
 
-class SentenciaCase extends Sentencia{
+class SentenciaCase extends Sentencia {
     valor: string;
     sentencia: Sentencia;
 
@@ -16,7 +16,7 @@ class SentenciaCase extends Sentencia{
     }
 
     printSentencia(): string {
-        this.cuerpo = '\n' + this.valor + ':' + this.sentencia.printSentencia() + ',';
+        this.cuerpo = this.valor + ':' + this.sentencia.printSentencia() + ',';
         return this.cuerpo;
     }
 }

@@ -4,57 +4,27 @@ import Sentencia from "./Sentencia";
 import AnalizadorLexico from "./AnalizadorLexico";
 import AnalizadorSintactico from "./AnalizadorSintactico";
 import Declaracion from "./Declaracion";
+import Comentario from "./Comentario";
 
 class MainApp {
 
-    salidaTablaVariablesHTML = "";
-    listaSentencias: Array<SentenciaInterface> = [];
-    salidapython: string = "";
-    salidahtml: string = "";
-    salidajson: string = "";
-    entrada: string = "";
-    lista: Array<Token> = [];
-    errores: Array<Token> = new Array<Token>();
-    reporte: string = "";
-    salidaTablaErroresHTML = "";
+    salidaTablaVariablesHTML = "";//Tabla con tipo,nombre y linea de las variables
+    listaSentencias: Array<SentenciaInterface> = [];//contiene todas las sentencias sin anidarlas
+    salidapython: string = "";//texto traducido a python
+    salidahtml: string = "";//salida de html obtenido de una cadena html
+    salidajson: string = "";//salida de codigo html traducido a json
+    entrada: string = "";//entrada para analizar
+    lista: Array<Token> = [];//lista de tokens encontrado en texto
+    errores: Array<Token> = new Array<Token>();//erroes lexicos encontrados
+    reporte: string = "";//
+    salidaTablaErroresHTML = "";//texto para archivo de errores lexicos y sintactivos
 
     analizar(text: string): void {
         let cuerpoPhyton: string = "";
         let analizador = new AnalizadorLexico();
         //let text:string = "";
-        text += 'return 6+8; string a = "loser"+b; string a_A = "amigo"; int b = 1 + 3; bool j = getBool(12,b);\n';
-        text += '\n /*Esto es un comentario multilinea*/\n';
-        text += '\n //amigo esto es una comentario\n';
-        text += '\n saludo_espaniol = "hola!";';
-        text += '\n Console.Write("Hello World!"+a+234+amigo+" "+true);';
-        text += "\n break;";
-        text += "\n continue;";
-        text += "\n int a = 1 + 2 ; ";
-        text += '\n string name = "colega"; ';
-        text += '\n string cadena = "Esta es mi cadena!" ; ';
-        text += "\n void sumar ( int a, int b ) { \n";
-        text += '\n string name = "colega"; ';
-        text += "\n return;";
-        text += "\n }";
-        text += "\n string getName(int a) { \n";
-        text += 'string name = "name:"+a; ';
-        text += 'return a;';
-        text += '\n }';
-        text += "\n void main() { \n";
-        text += 'if(a<4){return j;}';
-        text += 'Console.Write("This is a main() method!"); ';
-        //text += 'void saludar(string saludo){ Console.Write("Este es un saludo: "+saludo) } ; ';
-        text += 'return a;';
-        text += '? °';
-        text += '\n }';
-        text += 'for ( int index = 0 ; i < 10 ; i++ ) { if(a<13){int a = 233; return a;} } ';
-        text += 'while ( a < 123 ) { int a = 123; } ';
-        text += 'do { Console.Write("Hello World!"); } while ( a<45 ) ;';
-        text += 'if ( a > 0 ) { Console.Write("Mensaje"); int a = 123; }';
-        text += 'else if(j>12){Console.Write("Mensaje2");    }';
-        text += 'else if(j>1){Console.Write("Mensaje3");}';
-        //text += 'altura = 123;';
-        text += 'switch ( index ) { case 1: price = 12; break; default: Console.Write("No valido"); }';
+        
+
         analizador.analizar(text);
         analizador.printLista();
         let parser = new AnalizadorSintactico();
@@ -62,17 +32,34 @@ class MainApp {
         this.lista = this.removerErrores(list);
 
         parser.parsear(this.lista);
+
         let listaSentencias: Array<SentenciaInterface> = parser.listaSentencias;
         let size = listaSentencias.length;
         //console.log("Elementos en lista de sentencias: "+size);
+        let sentencia:SentenciaInterface;
         for (let i: number = 0; i < size; i++) {
-            cuerpoPhyton += listaSentencias[i].printSentencia();
+            sentencia = listaSentencias[i] ;
+            if(sentencia instanceof Comentario){
+                let flag:boolean = (sentencia as Comentario).isSingleLine;
+                if(flag == true){
+                    cuerpoPhyton += sentencia.printSentencia();
+                }else{
+                    cuerpoPhyton +='\n'+ sentencia.printSentencia();
+                }
+                
+            }else{
+                cuerpoPhyton += '\n'+ sentencia.printSentencia();
+            }
         }
         console.log(cuerpoPhyton);
         this.listaSentencias = parser.listaGeneralSentencias;
         this.salidapython = cuerpoPhyton;
         console.log("Elementos en lista de sentencias: " + size);
-        console.log(this.generarReporteTabla());
+        this.salidaTablaVariablesHTML = this.generarReporteTablaVariables();
+        this.salidahtml = this.generarSalidaHtml(analizador.lista);
+        console.log();
+        this.generarSalidaJson(analizador.lista);
+
     }
 
     generarReporteErrores(): string {
@@ -81,7 +68,157 @@ class MainApp {
         return html;
     }
 
-    generarReporteTabla(): string {
+    generarSalidaHtml(lista: Array<Token>): string {
+        let html = "";
+        let size: number = lista.length;
+        let token: Token;
+        for (let i: number = 0; i < size; i++) {
+            token = lista[i];
+            if (token.tipo == TipoToken.CADENA_HTML) {
+                let text: string = token.lexema;
+                //text = text.replace("'", "");
+                //text = text.replace("'", "");
+                var re = /'/g;
+                var resultado = text.replace(re,"");
+                html = resultado;
+                break;
+            }
+        }
+        return html;
+    }
+
+    generarSalidaJson(lista: Array<Token>): string {
+        let html = "";
+        let size: number = lista.length;
+        let token: Token;
+        for (let i: number = 0; i < size; i++) {
+            token = lista[i];
+            if (token.tipo == TipoToken.CADENA_HTML) {
+                let text: string = token.lexema;
+                //text = text.replace("'", "");
+                //text = text.replace("'", "");
+                var re = /'/g;
+                var resultado = text.replace(re,"");
+                html = resultado;
+                break;
+            }
+        }
+        let salidajson = html;
+
+        var re = /<html>/g;
+        var resultado = salidajson.replace(re, '"html":{');
+        salidajson = resultado;
+
+        var re = /<[/]html>/g;
+        var resultado = salidajson.replace(re, '}');
+        salidajson = resultado;
+
+        var re = /<head>/g;
+        var resultado = salidajson.replace(re, '"head":{');
+        salidajson = resultado;
+
+        var re = /<[/]head>/g;
+        var resultado = salidajson.replace(re, '},');
+        salidajson = resultado;
+
+        var re = /<tittle>/g;
+        var resultado = salidajson.replace(re, '"tittle":{\n\t\t\t"TEXTO":');
+        salidajson = resultado;
+
+        var re = /<[/]tittle>/g;
+        var resultado = salidajson.replace(re, '\n\t\t}');
+        salidajson = resultado;
+
+        var re = /<body/g;
+        var resultado = salidajson.replace(re, '"body":{');
+        salidajson = resultado;
+
+        var re = /< body/g;
+        var resultado = salidajson.replace(re, '"body":{');
+        salidajson = resultado;
+
+        var re = /<[/]body>/g;
+        var resultado = salidajson.replace(re, '}');
+        salidajson = resultado;
+
+        var re = /style =/g;
+        var resultado = salidajson.replace(re, '\n\t\t"style":');
+        salidajson = resultado;
+
+        var re = /style=/g;
+        var resultado = salidajson.replace(re, '\n\t\t"style":\n');
+        salidajson = resultado;
+
+        var re = /<h1>/g;
+        var resultado = salidajson.replace(re, '"h1":{\n\t\t\t"TEXTO":');
+        salidajson = resultado;
+
+        var re = /<[/]h1>/g;
+        var resultado = salidajson.replace(re, '\n\t\t},');
+        salidajson = resultado;
+
+        var re = /<h2>/g;
+        var resultado = salidajson.replace(re, '"h2":{\n\t\t\t"TEXTO":');
+        salidajson = resultado;
+
+        var re = /<[/]h2>/g;
+        var resultado = salidajson.replace(re, '\n\t\t},');
+        salidajson = resultado;
+
+        var re = /<p>/g;
+        var resultado = salidajson.replace(re, '"p":{ \n\t\t\t"TEXTO":');
+        salidajson = resultado;
+
+        var re = /<[/]p>/g;
+        var resultado = salidajson.replace(re, '\n\t\t\t},');
+        salidajson = resultado;
+
+        var re = /<div>/g;
+        var resultado = salidajson.replace(re, '"div":{\n\t\t\t');
+        salidajson = resultado;
+
+        var re = /<div/g;
+        var resultado = salidajson.replace(re, '"div":{\n\t\t\t');
+        salidajson = resultado;
+
+        var re = /<[/]div>/g;
+        var resultado = salidajson.replace(re, '\n\t\t},');
+        salidajson = resultado;
+
+        var re = /<label>/g;
+        var resultado = salidajson.replace(re, '"label":{\n\t\t\t"TEXTO":');
+        salidajson = resultado;
+
+        var re = /<[/]label>/g;
+        var resultado = salidajson.replace(re, '\n\t\t},');
+        salidajson = resultado;
+
+        var re = /<button>/g;
+        var resultado = salidajson.replace(re, '"button":{\n\t\t\t"TEXTO":');
+        salidajson = resultado;
+
+        var re = /<[/]button>/g;
+        var resultado = salidajson.replace(re, '\n\t\t},');
+        salidajson = resultado;
+
+        var re = /<br>/g;
+        var resultado = salidajson.replace(re, '\n\t\t"br":{"TEXTO": " "\n\t\t},');
+        salidajson = resultado;
+
+        var re = /<input>/g;
+        var resultado = salidajson.replace(re, '\n\t\t"input":{\n\t\t},');
+        salidajson = resultado;
+
+        var re = />/g;
+        var resultado = salidajson.replace(re, ',');
+        salidajson = resultado;
+
+
+        console.log(salidajson);
+        return salidajson;
+    }
+
+    generarReporteTablaVariables(): string {
         let html: string = "\n<html>";
         html += "\n<head>";
         html += "\n<style> table, td, th { border: 1px solid #ddd;    text-align: center;} table {border-collapse: collapse;    width: 100%;} th, td { padding: 15px;} </style>";
@@ -128,9 +265,56 @@ class MainApp {
 }
 export = MainApp;
 let var_main = new MainApp();
-let entrada: string = 'Console.Write("Comienza el analisis");';
+let entrada: string = '';//
 var_main.main(entrada);
 let python: string = var_main.salidapython;
+
+var cadena: string = "Test abc test test abc test test test abc test test abc";
+var re = /abc/g;
+var resultado = cadena.replace(re, '');
+console.log(resultado);
+
+
+//const fs = require('fs');
+/*
+
+const fs = require('fs');
+var var_main = new MainApp();
+let entrada = 'Console.Write("Comienza el analisis");';
+fs.readFile('entrada.cs','utf-8',(error,datos)=>{
+    if(error){
+        throw error;
+    }else{
+        entrada += datos.toString();
+        //var_main.main(entrada);
+        var python = var_main.salidapython;
+        console.log(python);
+    }
+});
+
+
+
+
+
+fs.readFile('entrada.cs','utf-8',(error,datos)=>{
+    if(error){
+        throw error;
+    }else{
+        console.log(datos);
+    }
+
+});
+
+var tablavariables = var_main.salidaTablaVariablesHTML;
+fs.appendFile('reporte.html',tablavariables,(error)=>{
+    if(error){
+        throw error;
+
+    }
+    console.log("El reporte ha sido creado con exito");
+});
+*/
+
 
 
 

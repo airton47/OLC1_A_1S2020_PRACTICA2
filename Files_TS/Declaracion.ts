@@ -29,7 +29,7 @@ class Declaracion extends Sentencia implements SentenciaInterface {
     }
 
     printSentencia(): string {
-        this.cuerpo = "\nvar " +this.nombre ;
+        this.cuerpo = "var " +this.nombre ;
         if (this.isEXpDefined()) {
             this.cuerpo += " : ";
             this.cuerpo += this.expresion;

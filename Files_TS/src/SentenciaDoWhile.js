@@ -30,10 +30,10 @@ var SentenciaDoWhile = /** @class */ (function (_super) {
         return _this;
     }
     SentenciaDoWhile.prototype.printSentencia = function () {
-        this.cuerpo = '\nwhile True:\n';
+        this.cuerpo = 'while True:\n';
         var size = this.sentencias.length;
         for (var i = 0; i < size; i++) {
-            this.cuerpo += '\t' + this.sentencias[i].printSentencia();
+            this.cuerpo += '\n\t' + this.sentencias[i].printSentencia();
         }
         this.cuerpo += '\n\tif (' + this.condicion + '):\n';
         this.cuerpo += '\tbreak;';

@@ -6,9 +6,14 @@ class SentenciaIF extends Sentencia {
     listaIfs?: Array<SentenciaIF>;//Lista de else if's anidados
     listaSentencias: Array<Sentencia>;//lista de sentencias del if principal
 
-    constructor(c: string, lista?: Array<Sentencia>, listifs?: Array<SentenciaIF>) {
+    constructor(c?: string, lista?: Array<Sentencia>, listifs?: Array<SentenciaIF>) {
         super();
-        this.condicion = c;
+        if(c!=undefined){
+            this.condicion = c;
+        }else{
+            this.condicion = "";
+        }
+        
         if (lista != undefined) {
             this.listaSentencias = lista;
         } else {
@@ -20,21 +25,25 @@ class SentenciaIF extends Sentencia {
     }
 
     printSentencia(): string {
-        this.cuerpo = "\nif " + this.condicion + " :\n";
+        this.cuerpo = "if " + this.condicion + " :";
         let size: number = this.listaSentencias.length;
         for (let i: number = 0; i < size; i++) {
-            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia();
+            this.cuerpo += "\n\t" + this.listaSentencias[i].printSentencia();
         }
         if (this.listaIfs != undefined) {
             size = this.listaIfs.length;
             let ifactual:SentenciaIF;
             for (let i: number = 0; i < size; i++) {
                 ifactual = this.listaIfs[i];
-                this.cuerpo += "\nelif " + ifactual.condicion+ " :\n";
+                if(ifactual.condicion == ""){
+                    this.cuerpo += "\nelse " + ifactual.condicion+ " :";
+                }else{
+                    this.cuerpo += "\nelif " + ifactual.condicion+ " :";
+                }
                 if(ifactual.listaSentencias!=undefined){
                     let size1:number = ifactual.listaSentencias.length;
                     for(let i:number = 0;i<size1;i++){
-                        this.cuerpo += '\t'+ifactual.listaSentencias[i].printSentencia();
+                        this.cuerpo += "\n\t" + ifactual.listaSentencias[i].printSentencia();
                     }
                 }
             }

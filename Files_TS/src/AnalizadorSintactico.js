@@ -270,7 +270,7 @@ var AnalizadorSintactico = /** @class */ (function () {
         console.log("Entro a estado: DEF()");
         var sentencia;
         var cad = "";
-        cad += this.LV();
+        id += this.LVP();
         cad += this.AS();
         if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_PUNTOYCOMA) {
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
@@ -297,14 +297,17 @@ var AnalizadorSintactico = /** @class */ (function () {
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
         }
         if (this.isValid(variables) && this.flag_error == false) {
+            sentencia = new Declaracion_1.default(variables, this.tipo_dec, this.linea, expresion);
+            return sentencia;
+            /*
             if (this.isValid(expresion)) {
-                sentencia = new Declaracion_1.default(variables, this.tipo_dec, this.linea, expresion);
+                sentencia = new Declaracion(variables,this.tipo_dec,this.linea, expresion);
+                return sentencia;
+            } else {
+                sentencia = new Declaracion(variables,this.tipo_dec,this.linea);
                 return sentencia;
             }
-            else {
-                sentencia = new Declaracion_1.default(variables, this.tipo_dec, this.linea);
-                return sentencia;
-            }
+            */
         }
         else {
             return undefined;
@@ -344,13 +347,10 @@ var AnalizadorSintactico = /** @class */ (function () {
     AnalizadorSintactico.prototype.LV = function () {
         var listvars = "";
         console.log("Entro a estado: LV()");
-        if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_COMA) {
-            listvars += this.preAnalisis.lexema;
-            this.match(Token_1.TipoToken.SYM_COMA);
+        if (this.preAnalisis.tipo == Token_1.TipoToken.IDENTIFICADOR) {
             listvars += this.preAnalisis.lexema;
             this.match(Token_1.TipoToken.IDENTIFICADOR);
-            listvars += this.LV();
-            return listvars;
+            return listvars += this.LVP();
         }
         else {
             return listvars;
@@ -376,7 +376,10 @@ var AnalizadorSintactico = /** @class */ (function () {
             this.match(Token_1.TipoToken.SYM_COMA);
             vars += this.preAnalisis.lexema;
             this.match(Token_1.TipoToken.IDENTIFICADOR);
-            vars += this.LVP();
+            var tipo = this.getTipo(this.preAnalisis);
+            if (tipo == Token_1.TipoToken.SYM_COMA) {
+                vars += this.LVP();
+            }
         }
         return vars;
     };
@@ -543,7 +546,7 @@ var AnalizadorSintactico = /** @class */ (function () {
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
             if (this.isValid(cad) == true && this.flag_error == false) {
                 asignacion = new Asignacion_1.default(cad1, cad);
-                asignacion.printSentencia();
+                //asignacion.printSentencia();
                 return asignacion;
             }
             this.flag_error = false;
@@ -958,6 +961,20 @@ var AnalizadorSintactico = /** @class */ (function () {
         var senif;
         if (this.preAnalisis.tipo == Token_1.TipoToken.KW_ELSE) {
             this.match(Token_1.TipoToken.KW_ELSE);
+            var tipo = this.getTipo(this.preAnalisis);
+            if (tipo == Token_1.TipoToken.SYM_LLAVEIZQ) {
+                this.match(Token_1.TipoToken.SYM_LLAVEIZQ);
+                var sentencias_1 = this.I();
+                this.match(Token_1.TipoToken.SYM_LLAVEDER);
+                if (this.flag_error == false) {
+                    senif = new SentenciaIF_1.default(undefined, sentencias_1);
+                    console.log(senif.printSentencia());
+                    return senif;
+                }
+                else {
+                    return undefined;
+                }
+            }
             this.match(Token_1.TipoToken.KW_IF);
             this.match(Token_1.TipoToken.SYM_PARENTESISIZQ);
             var condicion = this.C();
@@ -1161,7 +1178,7 @@ var AnalizadorSintactico = /** @class */ (function () {
             this.match(Token_1.TipoToken.KW_CONTINUE);
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false) {
-                var cad = "\ncontinue";
+                var cad = "continue";
                 sentencia = new Sentencia_1.default(cad);
                 return sentencia;
             }
@@ -1170,7 +1187,7 @@ var AnalizadorSintactico = /** @class */ (function () {
             this.match(Token_1.TipoToken.KW_BREAK);
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false) {
-                var cad = "\nbreak";
+                var cad = "break";
                 sentencia = new Sentencia_1.default(cad);
                 return sentencia;
             }
@@ -1185,7 +1202,7 @@ var AnalizadorSintactico = /** @class */ (function () {
             this.match(Token_1.TipoToken.SYM_PARENTESISDER);
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false) {
-                var body = "\nprint(" + cad.replace("+", ",") + ")";
+                var body = "print(" + cad.replace("+", ",") + ")";
                 sentencia = new Sentencia_1.default(body);
                 return sentencia;
             }

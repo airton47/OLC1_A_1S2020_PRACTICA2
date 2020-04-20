@@ -21,13 +21,13 @@ class Funcion extends Procedimiento {
     }
 
     printSentencia(): string {
-        this.cuerpo += "\ndef " + this.nombre + "(";
+        this.cuerpo += "def " + this.nombre + "(";
         let size: number = 0;
         this.cuerpo += this.listaParametros;
-        this.cuerpo += "):\n";
+        this.cuerpo += "):";
         size = this.listaSentencias.length;
         for (let i: number = 0; i < size; i++) {
-            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia();
+            this.cuerpo += "\n\t" + this.listaSentencias[i].printSentencia();
         }
 
         //console.log(this.cuerpo);

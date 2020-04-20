@@ -20,7 +20,12 @@ var SentenciaIF = /** @class */ (function (_super) {
     __extends(SentenciaIF, _super);
     function SentenciaIF(c, lista, listifs) {
         var _this = _super.call(this) || this;
-        _this.condicion = c;
+        if (c != undefined) {
+            _this.condicion = c;
+        }
+        else {
+            _this.condicion = "";
+        }
         if (lista != undefined) {
             _this.listaSentencias = lista;
         }
@@ -33,21 +38,26 @@ var SentenciaIF = /** @class */ (function (_super) {
         return _this;
     }
     SentenciaIF.prototype.printSentencia = function () {
-        this.cuerpo = "\nif " + this.condicion + " :\n";
+        this.cuerpo = "if " + this.condicion + " :";
         var size = this.listaSentencias.length;
         for (var i = 0; i < size; i++) {
-            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia();
+            this.cuerpo += "\n\t" + this.listaSentencias[i].printSentencia();
         }
         if (this.listaIfs != undefined) {
             size = this.listaIfs.length;
             var ifactual = void 0;
             for (var i = 0; i < size; i++) {
                 ifactual = this.listaIfs[i];
-                this.cuerpo += "\nelif " + ifactual.condicion + " :\n";
+                if (ifactual.condicion == "") {
+                    this.cuerpo += "\nelse " + ifactual.condicion + " :";
+                }
+                else {
+                    this.cuerpo += "\nelif " + ifactual.condicion + " :";
+                }
                 if (ifactual.listaSentencias != undefined) {
                     var size1 = ifactual.listaSentencias.length;
                     for (var i_1 = 0; i_1 < size1; i_1++) {
-                        this.cuerpo += '\t' + ifactual.listaSentencias[i_1].printSentencia();
+                        this.cuerpo += "\n\t" + ifactual.listaSentencias[i_1].printSentencia();
                     }
                 }
             }

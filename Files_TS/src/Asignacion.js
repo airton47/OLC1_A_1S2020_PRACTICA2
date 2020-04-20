@@ -25,7 +25,7 @@ var Asignacion = /** @class */ (function (_super) {
         return _this;
     }
     Asignacion.prototype.printSentencia = function () {
-        this.cuerpo = "\n";
+        this.cuerpo = "";
         this.cuerpo += this.nombre + " : " + this.valor;
         return this.cuerpo;
     };

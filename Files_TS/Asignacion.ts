@@ -12,7 +12,7 @@ class Asignacion extends Sentencia {
     }
 
     printSentencia(): string {
-        this.cuerpo = "\n";
+        this.cuerpo = "";
         this.cuerpo += this.nombre + " : " + this.valor;
         return this.cuerpo;
     }

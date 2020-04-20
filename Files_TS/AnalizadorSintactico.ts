@@ -293,7 +293,7 @@ class AnalizadorSintactico {
         console.log("Entro a estado: DEF()");
         let sentencia: Sentencia;
         let cad: string = "";
-        cad += this.LV();
+        id += this.LVP();
         cad += this.AS();
         if (this.preAnalisis.tipo == TipoToken.SYM_PUNTOYCOMA) {
             this.match(TipoToken.SYM_PUNTOYCOMA);
@@ -319,7 +319,10 @@ class AnalizadorSintactico {
         if (this.preAnalisis.tipo == TipoToken.SYM_PUNTOYCOMA) {
             this.match(TipoToken.SYM_PUNTOYCOMA);
         }
-        if (this.isValid(variables) && this.flag_error == false) {
+        if (this.isValid(variables) && this.flag_error == false) {            
+            sentencia = new Declaracion(variables,this.tipo_dec,this.linea, expresion);
+                return sentencia;
+            /*
             if (this.isValid(expresion)) {
                 sentencia = new Declaracion(variables,this.tipo_dec,this.linea, expresion);
                 return sentencia;
@@ -327,6 +330,7 @@ class AnalizadorSintactico {
                 sentencia = new Declaracion(variables,this.tipo_dec,this.linea);
                 return sentencia;
             }
+            */
         } else {
             return undefined;
         }
@@ -363,13 +367,10 @@ class AnalizadorSintactico {
     public LV(): string {
         let listvars: string = "";
         console.log("Entro a estado: LV()");
-        if (this.preAnalisis.tipo == TipoToken.SYM_COMA) {
-            listvars += this.preAnalisis.lexema;
-            this.match(TipoToken.SYM_COMA);
+        if (this.preAnalisis.tipo == TipoToken.IDENTIFICADOR) {
             listvars += this.preAnalisis.lexema;
             this.match(TipoToken.IDENTIFICADOR);
-            listvars += this.LV();
-            return listvars;
+            return listvars += this.LVP();                        
         } else {
             return listvars;
         }
@@ -395,7 +396,10 @@ class AnalizadorSintactico {
             this.match(TipoToken.SYM_COMA);
             vars += this.preAnalisis.lexema;
             this.match(TipoToken.IDENTIFICADOR);
-            vars += this.LVP();
+            let tipo:TipoToken = this.getTipo(this.preAnalisis);
+            if(tipo == TipoToken.SYM_COMA){
+                vars += this.LVP();
+            }            
         }
         return vars;
     }
@@ -568,7 +572,7 @@ class AnalizadorSintactico {
             this.match(TipoToken.SYM_PUNTOYCOMA);
             if (this.isValid(cad) == true && this.flag_error == false) {
                 asignacion = new Asignacion(cad1, cad);
-                asignacion.printSentencia();
+                //asignacion.printSentencia();
                 return asignacion
             }
             this.flag_error = false;
@@ -1012,6 +1016,19 @@ class AnalizadorSintactico {
         let senif: SentenciaIF;
         if (this.preAnalisis.tipo == TipoToken.KW_ELSE) {
             this.match(TipoToken.KW_ELSE);
+            let tipo:TipoToken = this.getTipo(this.preAnalisis);
+            if(tipo == TipoToken.SYM_LLAVEIZQ){
+                this.match(TipoToken.SYM_LLAVEIZQ);
+                let sentencias: Array<Sentencia> | undefined = this.I();
+                this.match(TipoToken.SYM_LLAVEDER);
+                if (this.flag_error == false) {
+                    senif = new SentenciaIF(undefined,sentencias);
+                    console.log(senif.printSentencia());
+                    return senif;
+                }else{
+                    return undefined;
+                }
+            }
             this.match(TipoToken.KW_IF);
             this.match(TipoToken.SYM_PARENTESISIZQ);
             let condicion: string = this.C();
@@ -1212,7 +1229,7 @@ class AnalizadorSintactico {
             this.match(TipoToken.KW_CONTINUE);
             this.match(TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false) {
-                let cad: string = "\ncontinue";
+                let cad: string = "continue";
                 sentencia = new Sentencia(cad);
                 return sentencia;
             }
@@ -1220,7 +1237,7 @@ class AnalizadorSintactico {
             this.match(TipoToken.KW_BREAK);
             this.match(TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false) {
-                let cad: string = "\nbreak";
+                let cad: string = "break";
                 sentencia = new Sentencia(cad);
                 return sentencia;
             }
@@ -1234,7 +1251,7 @@ class AnalizadorSintactico {
             this.match(TipoToken.SYM_PARENTESISDER);
             this.match(TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false) {
-                let body: string = "\nprint(" + cad.replace("+", ",") + ")";
+                let body: string = "print(" + cad.replace("+", ",") + ")";
                 sentencia = new Sentencia(body);
                 return sentencia;
             }

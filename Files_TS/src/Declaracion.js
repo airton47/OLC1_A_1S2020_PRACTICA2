@@ -40,7 +40,7 @@ var Declaracion = /** @class */ (function (_super) {
         }
     };
     Declaracion.prototype.printSentencia = function () {
-        this.cuerpo = "\nvar " + this.nombre;
+        this.cuerpo = "var " + this.nombre;
         if (this.isEXpDefined()) {
             this.cuerpo += " : ";
             this.cuerpo += this.expresion;

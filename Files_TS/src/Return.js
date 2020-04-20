@@ -26,7 +26,7 @@ var Return = /** @class */ (function (_super) {
         return _this;
     }
     Return.prototype.printSentencia = function () {
-        this.cuerpo = "\nreturn ";
+        this.cuerpo = "return ";
         if (this.valor != undefined) {
             this.cuerpo += this.valor;
         }

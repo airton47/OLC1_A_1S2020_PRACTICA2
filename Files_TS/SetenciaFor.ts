@@ -23,7 +23,7 @@ class SentenciaFor extends Sentencia{
     }
 
     printSentencia(): string{
-        this.cuerpo ='\nfor '+this.varible + ' in range('+this.valor+','+this.delimitador+')';
+        this.cuerpo ='for '+this.varible + ' in range('+this.valor+','+this.delimitador+')';
         let size:number = this.sentencias.length;
         for(let i:number = 0;i<size;i++){
             this.cuerpo += '\n\t'+ this.sentencias[i].printSentencia();

@@ -34,7 +34,7 @@ var SentenciaFor = /** @class */ (function (_super) {
         return _this;
     }
     SentenciaFor.prototype.printSentencia = function () {
-        this.cuerpo = '\nfor ' + this.varible + ' in range(' + this.valor + ',' + this.delimitador + ')';
+        this.cuerpo = 'for ' + this.varible + ' in range(' + this.valor + ',' + this.delimitador + ')';
         var size = this.sentencias.length;
         for (var i = 0; i < size; i++) {
             this.cuerpo += '\n\t' + this.sentencias[i].printSentencia();

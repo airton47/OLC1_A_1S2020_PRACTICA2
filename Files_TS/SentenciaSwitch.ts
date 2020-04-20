@@ -13,7 +13,7 @@ class SentenciaSwitch extends Sentencia {
     }
 
     printSentencia(): string {
-        this.cuerpo = '\ndef switch(' + this.variable + ','+'):\n';
+        this.cuerpo = 'def switch(' + this.variable + ','+'):';
         this.cuerpo += '\tswitcher = {'
         let size: number = this.cases.length;
         let auxcase: SentenciaCase;

@@ -99,6 +99,16 @@ var AnalizadorLexico = /** @class */ (function () {
                         this.estado = 1;
                         colaux = columna;
                     }
+                    else if (chr == "&") {
+                        this.auxLex += chr;
+                        this.estado = 16;
+                        colaux = columna;
+                    }
+                    else if (chr == "|") {
+                        this.auxLex += chr;
+                        this.estado = 17;
+                        colaux = columna;
+                    }
                     else if (chr == "/") {
                         this.auxLex += chr;
                         this.estado = 2;
@@ -167,8 +177,8 @@ var AnalizadorLexico = /** @class */ (function () {
                         this.addToken(Token_1.TipoToken.SYM_DIFERENTFROM, this.auxLex, linea, columna);
                     }
                     else {
-                        this.writeSalida("Se ha encontrado ERROR LEXICO: " + this.auxLex);
-                        this.addToken(Token_1.TipoToken.ERROR, this.auxLex, linea, columna);
+                        this.writeSalida("Se ha encontrado Token: " + this.auxLex);
+                        this.addToken(Token_1.TipoToken.SYM_NOT, this.auxLex, linea, columna);
                         i = i - 1;
                     }
                     break;
@@ -216,7 +226,7 @@ var AnalizadorLexico = /** @class */ (function () {
                     if (chr == "=") {
                         this.auxLex += chr;
                         this.writeSalida("Se ha encontrado Token: " + this.auxLex);
-                        this.addToken(Token_1.TipoToken.SYM_MENORIGUAL, this.auxLex, linea, columna);
+                        this.addToken(Token_1.TipoToken.SYM_MAYORIGUAL, this.auxLex, linea, columna);
                     }
                     else {
                         this.writeSalida("Se ha encontrado Token: " + this.auxLex);
@@ -387,22 +397,81 @@ var AnalizadorLexico = /** @class */ (function () {
                     }
                     break;
                 case 13:
-                    if (chr != "'") {
+                    if (this.isLetter(chr) || this.isDigit(chr)) {
                         this.auxLex += chr;
-                        this.estado = 12;
+                        this.estado = 14;
+                    }
+                    else {
+                        this.auxLex += chr;
                         if (chr == "\n" || chr == "\r") {
                             linea++;
                             columna = 0;
                         }
+                        this.estado = 15;
+                    }
+                    break;
+                /*
+                if (chr != "'") {
+                    this.auxLex += chr;
+                    this.estado = 12;
+                    if (chr == "\n" || chr == "\r") {
+                        linea++;
+                        columna = 0;
+                    }
+                } else {
+                    this.auxLex += chr;
+                    this.writeSalida("Se ha encontrado Token: " + this.auxLex);
+                    this.addToken(TipoToken.CADENA_HTML, this.auxLex, linea, colaux, true);
+                }
+                break;
+                */
+                case 14:
+                    if (chr == "'") {
+                        this.auxLex += chr;
+                        this.addToken(Token_1.TipoToken.CADENA_CHAR, this.auxLex, linea, columna);
                     }
                     else {
                         this.auxLex += chr;
-                        this.writeSalida("Se ha encontrado Token: " + this.auxLex);
+                        if (chr == "\n" || chr == "\r") {
+                            linea++;
+                            columna = 0;
+                        }
+                        this.estado = 15;
+                    }
+                    break;
+                case 15:
+                    if (chr != "'") {
+                        this.auxLex += chr;
+                        if (chr == "\n" || chr == "\r") {
+                            linea++;
+                            columna = 0;
+                        }
+                        this.estado = 15;
+                    }
+                    else {
+                        this.auxLex += chr;
                         this.addToken(Token_1.TipoToken.CADENA_HTML, this.auxLex, linea, colaux, true);
                     }
                     break;
-                case 14:
-                    //if()
+                case 16:
+                    if (chr == "&") {
+                        this.auxLex += chr;
+                        this.addToken(Token_1.TipoToken.SYM_AND, this.auxLex, linea, columna);
+                    }
+                    else {
+                        this.addToken(Token_1.TipoToken.ERROR, chr.toString(), linea, columna);
+                        i = i - 1;
+                    }
+                    break;
+                case 17:
+                    if (chr == "|") {
+                        this.auxLex += chr;
+                        this.addToken(Token_1.TipoToken.SYM_OR, this.auxLex, linea, columna);
+                    }
+                    else {
+                        this.addToken(Token_1.TipoToken.ERROR, chr.toString(), linea, columna);
+                        i = i - 1;
+                    }
                     break;
             }
         }

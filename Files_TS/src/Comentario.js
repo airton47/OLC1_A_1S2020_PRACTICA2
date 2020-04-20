@@ -20,7 +20,15 @@ var Comentario = /** @class */ (function (_super) {
     __extends(Comentario, _super);
     function Comentario(comentario) {
         var _this = _super.call(this) || this;
+        _this.isSingleLine = false; //Me indica si el conmentario es single line
         _this.cuerpoComentario = comentario;
+        var aux = _this.cuerpoComentario;
+        var size = _this.cuerpoComentario.length;
+        if (1 <= size - 1) {
+            if (aux.charAt(0) == "/" && aux.charAt(1) == "/") {
+                _this.isSingleLine = true;
+            }
+        }
         return _this;
     }
     Comentario.prototype.printSentencia = function () {
@@ -31,12 +39,12 @@ var Comentario = /** @class */ (function (_super) {
             if (aux.charAt(0) == "/" && aux.charAt(1) == "/") {
                 var longitud = this.cuerpoComentario.length;
                 aux = aux.slice(2, longitud);
-                this.cuerpo = "\n#" + aux;
+                this.cuerpo = "#" + aux;
             }
             else {
                 var longitud = this.cuerpoComentario.length - 2;
                 aux = aux.slice(2, longitud);
-                this.cuerpo = "\n\"\"" + aux + "\"\"";
+                this.cuerpo = "\"\"" + aux + "\"\"";
             }
         }
         //console.log(this.cuerpo);

@@ -16,11 +16,11 @@ class SentenciaDoWhile extends Sentencia{
     }
 
     printSentencia(): string{
-        this.cuerpo = '\nwhile True:\n';
+        this.cuerpo = 'while True:\n';
         
         let size: number = this.sentencias.length;
         for(let i:number = 0;i<size;i++){
-            this.cuerpo += '\t'+this.sentencias[i].printSentencia();
+            this.cuerpo += '\n\t'+this.sentencias[i].printSentencia();
         }
         this.cuerpo += '\n\tif ('+this.condicion+'):\n';
         this.cuerpo += '\tbreak;';

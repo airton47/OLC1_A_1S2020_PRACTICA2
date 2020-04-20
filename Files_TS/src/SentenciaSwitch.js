@@ -25,7 +25,7 @@ var SentenciaSwitch = /** @class */ (function (_super) {
         return _this;
     }
     SentenciaSwitch.prototype.printSentencia = function () {
-        this.cuerpo = '\ndef switch(' + this.variable + ',' + '):\n';
+        this.cuerpo = 'def switch(' + this.variable + ',' + '):';
         this.cuerpo += '\tswitcher = {';
         var size = this.cases.length;
         var auxcase;

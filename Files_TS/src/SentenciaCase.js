@@ -30,7 +30,7 @@ var SentenciaCase = /** @class */ (function (_super) {
         return _this;
     }
     SentenciaCase.prototype.printSentencia = function () {
-        this.cuerpo = '\n' + this.valor + ':' + this.sentencia.printSentencia() + ',';
+        this.cuerpo = this.valor + ':' + this.sentencia.printSentencia() + ',';
         return this.cuerpo;
     };
     return SentenciaCase;

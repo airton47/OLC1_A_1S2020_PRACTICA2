@@ -16,10 +16,10 @@ class SentenciaWhile extends Sentencia{
     }
 
     printSentencia(): string{
-        this.cuerpo = "\nwhile "+this.condicion;
+        this.cuerpo = "while "+this.condicion;
         let size:number = this.sentencias.length;
         for(let i= 0;i<size;i++){
-        this.cuerpo+= '\t'+ this.sentencias[i].printSentencia();
+        this.cuerpo+= '\n\t'+ this.sentencias[i].printSentencia();
         }
         return this.cuerpo;
     }

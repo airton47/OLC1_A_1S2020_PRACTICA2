@@ -33,14 +33,13 @@ var Metodo = /** @class */ (function (_super) {
         return _this;
     }
     Metodo.prototype.printSentencia = function () {
-        this.cuerpo += "\ndef " + this.nombre + "(";
+        this.cuerpo += "def " + this.nombre + "(";
         var size = 0;
         this.cuerpo += this.listaParametros;
-        this.cuerpo += "):\n";
-        this.cuerpo += "\t";
+        this.cuerpo += "):";
         size = this.listaSentencias.length;
         for (var i = 0; i < size; i++) {
-            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia();
+            this.cuerpo += "\n\t" + this.listaSentencias[i].printSentencia();
         }
         //console.log(this.cuerpo);
         return this.cuerpo;

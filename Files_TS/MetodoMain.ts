@@ -12,12 +12,12 @@ class MetodoMain extends Procedimiento {
     }
 
     printSentencia(): string {
-        this.cuerpo = "\ndef " + "main(";        
-        this.cuerpo += "):\n";
+        this.cuerpo = "def " + "main(";        
+        this.cuerpo += "):";
         let size: number = 0;
         size = this.listaSentencias.length;
         for (let i: number = 0; i < size; i++) {
-            this.cuerpo += "\t" + this.listaSentencias[i].printSentencia()+"";
+            this.cuerpo += "\n\t" + this.listaSentencias[i].printSentencia();
         }
         this.cuerpo += '\nif __name__="__main__":\n';
         this.cuerpo += '\tmain()\n';
