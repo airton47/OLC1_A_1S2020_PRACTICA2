@@ -18,14 +18,42 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var Sentencia_1 = __importDefault(require("./Sentencia"));
 var SentenciaSwitch = /** @class */ (function (_super) {
     __extends(SentenciaSwitch, _super);
-    function SentenciaSwitch(variable) {
+    function SentenciaSwitch(variable, lista) {
         var _this = _super.call(this) || this;
         _this.variable = variable;
+        _this.cases = lista;
         return _this;
     }
     SentenciaSwitch.prototype.printSentencia = function () {
-        this.cuerpo = '\ndef switcher(' + this.variable + '):';
+        this.cuerpo = '\ndef switch(' + this.variable + ',' + '):\n';
+        this.cuerpo += '\tswitcher = {';
+        var size = this.cases.length;
+        var auxcase;
+        for (var i = 0; i < size; i++) {
+            auxcase = this.cases[i];
+            if (auxcase.valor != "") {
+                this.cuerpo += '\n\t' + auxcase.valor + ':' + auxcase.sentencia.printSentencia() + ',';
+            }
+            else {
+                this.cuerpo += '\n\t' + this.getLast() + ':' + auxcase.sentencia.printSentencia() + ',';
+            }
+        }
+        this.cuerpo += '\n\t}';
         return this.cuerpo;
+    };
+    SentenciaSwitch.prototype.getLast = function () {
+        var cad = "";
+        var index = this.cases.length - 2;
+        var valor_num;
+        if (index > 0) {
+            valor_num = this.cases[index].valor;
+        }
+        else {
+            valor_num = '100';
+        }
+        var numero = parseInt(valor_num) + 1;
+        cad = numero.toString();
+        return cad;
     };
     return SentenciaSwitch;
 }(Sentencia_1.default));

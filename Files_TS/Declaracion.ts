@@ -3,11 +3,15 @@ import Sentencia from "./Sentencia";
 
 class Declaracion extends Sentencia implements SentenciaInterface {
 
+    linea: number;
     nombre: string;
     expresion?: string;
+    tipo:string;
 
-    constructor(name: string, valor?: string) {
+    constructor(name: string,tipo:string,linea:number, valor?: string) {
         super();
+        this.tipo = tipo;
+        this.linea = linea;
         this.nombre = name;
         if (valor != undefined) {
             this.expresion = valor;

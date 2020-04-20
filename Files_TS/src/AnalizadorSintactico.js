@@ -15,11 +15,16 @@ var SetenciaFor_1 = __importDefault(require("./SetenciaFor"));
 var SentenciaWhile_1 = __importDefault(require("./SentenciaWhile"));
 var SentenciaDoWhile_1 = __importDefault(require("./SentenciaDoWhile"));
 var SentenciaIF_1 = __importDefault(require("./SentenciaIF"));
+var SentenciaCase_1 = __importDefault(require("./SentenciaCase"));
+var SentenciaSwitch_1 = __importDefault(require("./SentenciaSwitch"));
 var AnalizadorSintactico = /** @class */ (function () {
     function AnalizadorSintactico() {
         this.listaSentencias = new Array();
         this.numPreAnalisis = 0;
         this.flag_error = false;
+        this.tipo_dec = "";
+        this.linea = 0;
+        this.listaGeneralSentencias = new Array();
         //this.preAnalisis = new Token(TipoToken.ULTIMO, "");
         //this.listaTokens = new Array<Token>();
     }
@@ -148,6 +153,7 @@ var AnalizadorSintactico = /** @class */ (function () {
         //this.CM();
         sentencia = this.CM(); //COMENTARIOS MULTI-LINE O SINBLE-LINE
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.FN();
@@ -157,31 +163,37 @@ var AnalizadorSintactico = /** @class */ (function () {
         //}
         sentencia = this.DFN(); //Para declaraciones de variables o funciones con tipo de retorno
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.A();
         sentencia = this.A(); //PARA ASIGNACION A VARIABLES
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.M();
         sentencia = this.M(); //PARA METODOS VOID
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.SC();
         sentencia = this.SC();
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.SR();
         sentencia = this.SR();
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.SL();
         sentencia = this.SL();
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         return undefined;
@@ -263,7 +275,7 @@ var AnalizadorSintactico = /** @class */ (function () {
         if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_PUNTOYCOMA) {
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false && this.flag_error == false) {
-                sentencia = new Declaracion_1.default(id, cad);
+                sentencia = new Declaracion_1.default(id, this.tipo_dec, this.linea, cad);
                 return sentencia;
             }
             else {
@@ -286,11 +298,11 @@ var AnalizadorSintactico = /** @class */ (function () {
         }
         if (this.isValid(variables) && this.flag_error == false) {
             if (this.isValid(expresion)) {
-                sentencia = new Declaracion_1.default(variables, expresion);
+                sentencia = new Declaracion_1.default(variables, this.tipo_dec, this.linea, expresion);
                 return sentencia;
             }
             else {
-                sentencia = new Declaracion_1.default(variables);
+                sentencia = new Declaracion_1.default(variables, this.tipo_dec, this.linea);
                 return sentencia;
             }
         }
@@ -301,24 +313,30 @@ var AnalizadorSintactico = /** @class */ (function () {
     AnalizadorSintactico.prototype.T = function () {
         var flag = false;
         console.log("Entro a estado: T()");
+        this.linea = this.preAnalisis.linea;
         if (this.preAnalisis.tipo == Token_1.TipoToken.KW_INT) {
             this.match(Token_1.TipoToken.KW_INT);
+            this.tipo_dec = "int";
             flag = true;
         }
         else if (this.preAnalisis.tipo == Token_1.TipoToken.KW_STRING) {
             this.match(Token_1.TipoToken.KW_STRING);
+            this.tipo_dec = "string";
             flag = true;
         }
         else if (this.preAnalisis.tipo == Token_1.TipoToken.KW_DOUBLE) {
             this.match(Token_1.TipoToken.KW_DOUBLE);
+            this.tipo_dec = "double";
             flag = true;
         }
         else if (this.preAnalisis.tipo == Token_1.TipoToken.KW_BOOL) {
             this.match(Token_1.TipoToken.KW_BOOL);
+            this.tipo_dec = "bool";
             flag = true;
         }
         else if (this.preAnalisis.tipo == Token_1.TipoToken.KW_CHAR) {
             this.match(Token_1.TipoToken.KW_CHAR);
+            this.tipo_dec = "char";
             flag = true;
         }
         return flag;
@@ -593,7 +611,9 @@ var AnalizadorSintactico = /** @class */ (function () {
     AnalizadorSintactico.prototype.I = function () {
         var list;
         console.log("Entro a estado: I()");
-        list = this.LIV2();
+        if (this.checkPrimerosStandar(this.preAnalisis)) {
+            list = this.LIV2();
+        }
         if (this.flag_error == false && list != undefined) {
             return list;
         }
@@ -606,45 +626,173 @@ var AnalizadorSintactico = /** @class */ (function () {
         if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_LLAVEDER) {
             return lista;
         }
-        sentencia = this.SV2();
+        if (this.checkPrimerosStandar(this.preAnalisis)) {
+            sentencia = this.SV2();
+        }
         if (sentencia != undefined || sentencia != null) {
             lista.push(sentencia);
         }
-        this.joinListas(lista, this.LIPV2());
+        if (this.checkPrimerosStandar(this.preAnalisis)) {
+            this.joinListas(lista, this.LIPV2());
+        }
+        else {
+            return lista;
+        }
         return lista;
     };
     AnalizadorSintactico.prototype.LIPV2 = function () {
         var lista = new Array();
         var sentencia;
         console.log("Entro a estado: LIPV2()");
-        if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_LLAVEDER) {
+        /*
+        if (this.preAnalisis.tipo == TipoToken.SYM_LLAVEDER) {
             return lista;
         }
+        */
         sentencia = this.SV2();
         if (sentencia != null || sentencia != undefined) {
             lista.push(sentencia);
         }
-        return this.joinListas(lista, this.LIPV2());
+        if (this.checkPrimerosStandar(this.preAnalisis) == true) {
+            return this.joinListas(lista, this.LIPV2());
+        }
+        else {
+            return lista;
+        }
     };
     AnalizadorSintactico.prototype.SV2 = function () {
         var sentencia;
         console.log("Entro a estado: SV2()");
         sentencia = this.CM(); //COMENTARIOS MULTI-LINE O SINBLE-LINE
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         sentencia = this.D(); //Para declaraciones de variables
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         sentencia = this.A(); //PARA ASIGNACION A VARIABLES
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.SC();
+        sentencia = this.SC(); //Para sentencias de control
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
         //this.SR();
+        sentencia = this.SR(); //para sentencias de repeticion
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SL();
+        sentencia = this.SL(); //Para sentenicas locales como:console.write, return,break etc
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        return undefined;
+    };
+    AnalizadorSintactico.prototype.I3 = function () {
+        var list;
+        console.log("Entro a estado: I3()");
+        if (this.checkPrimerosMain(this.preAnalisis)) {
+            list = this.LIV3();
+        }
+        if (this.flag_error == false && list != undefined) {
+            return list;
+        }
+        return undefined;
+    };
+    AnalizadorSintactico.prototype.LIV3 = function () {
+        var sentencia;
+        var lista = new Array();
+        console.log("Entro a estado: LIV3()");
+        if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_LLAVEDER) {
+            return lista;
+        }
+        if (this.checkPrimerosMain(this.preAnalisis)) {
+            sentencia = this.SV3();
+        }
+        if (sentencia != undefined || sentencia != null) {
+            lista.push(sentencia);
+        }
+        if (this.checkPrimerosMain(this.preAnalisis)) {
+            this.joinListas(lista, this.LIPV3());
+        }
+        else {
+            return lista;
+        }
+        return lista;
+    };
+    AnalizadorSintactico.prototype.LIPV3 = function () {
+        var lista = new Array();
+        var sentencia;
+        console.log("Entro a estado: LIPV3()");
+        /*
+        if (this.preAnalisis.tipo == TipoToken.SYM_LLAVEDER) {
+            return lista;
+        }
+        */
+        sentencia = this.SV3();
+        if (sentencia != null || sentencia != undefined) {
+            lista.push(sentencia);
+        }
+        if (this.checkPrimerosMain(this.preAnalisis) == true) {
+            return this.joinListas(lista, this.LIPV3());
+        }
+        else {
+            return lista;
+        }
+    };
+    AnalizadorSintactico.prototype.SV3 = function () {
+        var sentencia;
+        console.log("Entro a estado: SV3()");
+        //this.CM()
+        sentencia = this.CM(); //COMENTARIOS MULTI-LINE O SINBLE-LINE
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.DFN()
+        sentencia = this.DFN(); //Para declaraciones de variables funciones con tipo de retorno
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.M()
+        sentencia = this.M(); //Para metodos void
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.A()
+        sentencia = this.A(); //PARA ASIGNACION A VARIABLES
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SC();
+        sentencia = this.SC(); //Para instruccion de control
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SR();
+        sentencia = this.SR(); //Para instruciones de repeticion
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SL();
         sentencia = this.SL();
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         return undefined;
@@ -698,7 +846,7 @@ var AnalizadorSintactico = /** @class */ (function () {
             this.match(Token_1.TipoToken.SYM_PARENTESISIZQ);
             this.match(Token_1.TipoToken.SYM_PARENTESISDER);
             this.match(Token_1.TipoToken.SYM_LLAVEIZQ);
-            var lista = this.I();
+            var lista = this.I3();
             this.match(Token_1.TipoToken.SYM_LLAVEDER);
             if (this.flag_error == false) {
                 sentencia = new MetodoMain_1.default(lista);
@@ -715,19 +863,26 @@ var AnalizadorSintactico = /** @class */ (function () {
         var sentencia;
         if (this.preAnalisis.tipo == Token_1.TipoToken.KW_IF) {
             sentencia = this.IF();
-        }
-        if (sentencia != undefined) {
-            return sentencia;
+            if (sentencia != undefined) {
+                return sentencia;
+            }
         }
         if (this.preAnalisis.tipo == Token_1.TipoToken.KW_SWITCH) {
             this.match(Token_1.TipoToken.KW_SWITCH);
             this.match(Token_1.TipoToken.SYM_PARENTESISIZQ);
+            var variable = this.preAnalisis.lexema;
             this.match(Token_1.TipoToken.IDENTIFICADOR);
             this.match(Token_1.TipoToken.SYM_PARENTESISDER);
             this.match(Token_1.TipoToken.SYM_LLAVEIZQ);
-            this.SW();
-            this.DF();
+            var lista = this.SWP();
             this.match(Token_1.TipoToken.SYM_LLAVEDER);
+            if (this.flag_error == false && lista != undefined) {
+                sentencia = new SentenciaSwitch_1.default(variable, lista);
+                return sentencia;
+            }
+            else {
+                this.flag_error = false;
+            }
         }
         return undefined;
         /*
@@ -870,12 +1025,29 @@ var AnalizadorSintactico = /** @class */ (function () {
         }
         return operacion;
     };
-    AnalizadorSintactico.prototype.SW = function () {
-        console.log("Entro a estado: SW()");
-        this.CS();
-        this.SWP();
-    };
     AnalizadorSintactico.prototype.SWP = function () {
+        var listacases = new Array();
+        console.log("Entro a estado: SW()");
+        var case_elem = this.CS();
+        if (case_elem != undefined) {
+            listacases.push(case_elem);
+        }
+        if (this.preAnalisis.tipo == Token_1.TipoToken.KW_CASE) {
+            this.joinListasCase(listacases, this.SWP());
+        }
+        else if (this.preAnalisis.tipo == Token_1.TipoToken.KW_DEFAULT) {
+            var deflt = this.DF();
+            if (deflt != undefined) {
+                listacases.push(deflt);
+                return listacases;
+            }
+        }
+        else {
+            return listacases;
+        }
+        return undefined;
+    };
+    AnalizadorSintactico.prototype.SWPP = function () {
         console.log("Entro a estado: SWP()");
         this.CS();
         this.SWP();
@@ -884,19 +1056,38 @@ var AnalizadorSintactico = /** @class */ (function () {
         console.log("Entro a estado: CS()");
         if (this.preAnalisis.tipo == Token_1.TipoToken.KW_CASE) {
             this.match(Token_1.TipoToken.KW_CASE);
-            this.match(Token_1.TipoToken.SYM_DOSPUNTOS);
+            var valor = this.preAnalisis.lexema;
             this.match(Token_1.TipoToken.NUMERO);
-            this.LI();
+            this.match(Token_1.TipoToken.SYM_DOSPUNTOS);
+            var tipo = this.getTipo(this.preAnalisis);
+            var sentence = void 0;
+            if (tipo == Token_1.TipoToken.IDENTIFICADOR) {
+                sentence = this.A();
+            }
             this.match(Token_1.TipoToken.KW_BREAK);
+            this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
+            if (this.flag_error == false && sentence != undefined) {
+                var sentencia = new SentenciaCase_1.default(sentence, valor);
+                return sentencia;
+            }
         }
+        return undefined;
     };
     AnalizadorSintactico.prototype.DF = function () {
         console.log("Entro a estado: DF()");
         if (this.preAnalisis.tipo == Token_1.TipoToken.KW_DEFAULT) {
             this.match(Token_1.TipoToken.KW_DEFAULT);
             this.match(Token_1.TipoToken.SYM_DOSPUNTOS);
-            this.LI();
+            var tipo = this.getTipo(this.preAnalisis);
+            if (tipo == Token_1.TipoToken.KW_CONSOLE) {
+                var sent = this.SL();
+                if (sent != undefined) {
+                    var sentcase = new SentenciaCase_1.default(sent);
+                    return sentcase;
+                }
+            }
         }
+        return undefined;
     };
     AnalizadorSintactico.prototype.SR = function () {
         console.log("Entro a estado: SR()");
@@ -1233,8 +1424,44 @@ var AnalizadorSintactico = /** @class */ (function () {
         }
         return a;
     };
+    AnalizadorSintactico.prototype.joinListasCase = function (a, b) {
+        if (b != undefined) {
+            var size = b.length;
+            for (var i = 0; i < size; i++) {
+                a.push(b[i]);
+            }
+        }
+        return a;
+    };
     AnalizadorSintactico.prototype.getTipo = function (token) {
         return token.tipo;
+    };
+    AnalizadorSintactico.prototype.checkPrimerosStandar = function (token) {
+        var flag = false;
+        if (token.tipo == Token_1.TipoToken.IDENTIFICADOR || token.tipo == Token_1.TipoToken.KW_INT || token.tipo == Token_1.TipoToken.KW_STRING
+            || token.tipo == Token_1.TipoToken.KW_BOOL || token.tipo == Token_1.TipoToken.KW_CHAR || token.tipo == Token_1.TipoToken.KW_DOUBLE
+            || token.tipo == Token_1.TipoToken.COMENTARIO_SL || token.tipo == Token_1.TipoToken.COMENTARIO_ML ||
+            token.tipo == Token_1.TipoToken.KW_FOR || token.tipo == Token_1.TipoToken.KW_WHILE || token.tipo == Token_1.TipoToken.KW_IF ||
+            token.tipo == Token_1.TipoToken.KW_SWITCH || token.tipo == Token_1.TipoToken.KW_CONTINUE ||
+            token.tipo == Token_1.TipoToken.KW_BREAK || token.tipo == Token_1.TipoToken.KW_RETURN || token.tipo == Token_1.TipoToken.KW_CONSOLE
+            || token.tipo == Token_1.TipoToken.KW_DO) {
+            flag = true;
+        }
+        return flag;
+    };
+    AnalizadorSintactico.prototype.checkPrimerosMain = function (token) {
+        var flag = false;
+        if (token.tipo == Token_1.TipoToken.IDENTIFICADOR || token.tipo == Token_1.TipoToken.KW_INT || token.tipo == Token_1.TipoToken.KW_STRING
+            || token.tipo == Token_1.TipoToken.KW_BOOL || token.tipo == Token_1.TipoToken.KW_CHAR || token.tipo == Token_1.TipoToken.KW_DOUBLE
+            || token.tipo == Token_1.TipoToken.COMENTARIO_SL || token.tipo == Token_1.TipoToken.COMENTARIO_ML ||
+            token.tipo == Token_1.TipoToken.KW_FOR || token.tipo == Token_1.TipoToken.KW_WHILE || token.tipo == Token_1.TipoToken.KW_IF ||
+            token.tipo == Token_1.TipoToken.KW_SWITCH || token.tipo == Token_1.TipoToken.KW_CONTINUE ||
+            token.tipo == Token_1.TipoToken.KW_BREAK || token.tipo == Token_1.TipoToken.KW_RETURN || token.tipo == Token_1.TipoToken.KW_CONSOLE
+            || token.tipo == Token_1.TipoToken.KW_DO ||
+            token.tipo == Token_1.TipoToken.KW_VOID) {
+            flag = true;
+        }
+        return flag;
     };
     return AnalizadorSintactico;
 }());

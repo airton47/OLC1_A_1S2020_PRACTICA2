@@ -13,6 +13,8 @@ import SentenciaFor from "./SetenciaFor";
 import SentenciaWhile from "./SentenciaWhile";
 import SentenciaDoWhile from "./SentenciaDoWhile";
 import SentenciaIF from "./SentenciaIF";
+import SentenciaCase from "./SentenciaCase";
+import SentenciaSwitch from "./SentenciaSwitch";
 
 class AnalizadorSintactico {
     //Atributos necesarios para hacer analisis sitactico
@@ -21,11 +23,17 @@ class AnalizadorSintactico {
     preAnalisis!: Token;
     numPreAnalisis: number;
     flag_error: boolean;
+    tipo_dec:string;
+    linea :number;
+    listaGeneralSentencias:Array<SentenciaInterface>;
 
     constructor() {
         this.listaSentencias = new Array<Sentencia>();
         this.numPreAnalisis = 0;
         this.flag_error = false;
+        this.tipo_dec = "";
+        this.linea = 0;
+        this.listaGeneralSentencias = new Array<SentenciaInterface>();
         //this.preAnalisis = new Token(TipoToken.ULTIMO, "");
         //this.listaTokens = new Array<Token>();
     }
@@ -127,19 +135,19 @@ class AnalizadorSintactico {
         let lista: Array<Sentencia> = new Array<Sentencia>();
         let sentencia: Sentencia | undefined;
         console.log("Entro a estado: LIP()");
-        
+
         sentencia = this.S();
         if (sentencia != null || sentencia != undefined) {
             lista.push(sentencia);
         }
         if (this.preAnalisis.tipo == TipoToken.ULTIMO) {
             return lista;
-        }else{
+        } else {
             let lista_aux: Array<Sentencia> = this.joinListas(lista, this.LIP());
             return lista_aux;
         }
-        
-        
+
+
         /*
         let lista: Array<Sentencia> = new Array<Sentencia>();
         let sentencia: Sentencia | undefined;
@@ -163,6 +171,7 @@ class AnalizadorSintactico {
         //this.CM();
         sentencia = this.CM();//COMENTARIOS MULTI-LINE O SINBLE-LINE
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.FN();
@@ -172,34 +181,41 @@ class AnalizadorSintactico {
         //}
         sentencia = this.DFN();//Para declaraciones de variables o funciones con tipo de retorno
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.A();
         sentencia = this.A();//PARA ASIGNACION A VARIABLES
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.M();
         sentencia = this.M();//PARA METODOS VOID
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.SC();
         sentencia = this.SC();
-        if(sentencia!= undefined || sentencia != null){
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
 
         //this.SR();
         sentencia = this.SR();
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.SL();
         sentencia = this.SL();
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
+
         return undefined;
     }
 
@@ -282,7 +298,7 @@ class AnalizadorSintactico {
         if (this.preAnalisis.tipo == TipoToken.SYM_PUNTOYCOMA) {
             this.match(TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false && this.flag_error == false) {
-                sentencia = new Declaracion(id, cad);
+                sentencia = new Declaracion(id,this.tipo_dec,this.linea, cad);
                 return sentencia;
             } else {
                 this.flag_error = false;
@@ -305,10 +321,10 @@ class AnalizadorSintactico {
         }
         if (this.isValid(variables) && this.flag_error == false) {
             if (this.isValid(expresion)) {
-                sentencia = new Declaracion(variables, expresion);
+                sentencia = new Declaracion(variables,this.tipo_dec,this.linea, expresion);
                 return sentencia;
             } else {
-                sentencia = new Declaracion(variables);
+                sentencia = new Declaracion(variables,this.tipo_dec,this.linea);
                 return sentencia;
             }
         } else {
@@ -319,20 +335,26 @@ class AnalizadorSintactico {
     public T(): boolean {
         let flag: boolean = false;
         console.log("Entro a estado: T()");
+        this.linea = this.preAnalisis.linea;
         if (this.preAnalisis.tipo == TipoToken.KW_INT) {
             this.match(TipoToken.KW_INT);
+            this.tipo_dec = "int";
             flag = true;
         } else if (this.preAnalisis.tipo == TipoToken.KW_STRING) {
             this.match(TipoToken.KW_STRING);
+            this.tipo_dec = "string";
             flag = true;
         } else if (this.preAnalisis.tipo == TipoToken.KW_DOUBLE) {
             this.match(TipoToken.KW_DOUBLE);
+            this.tipo_dec = "double";
             flag = true;
         } else if (this.preAnalisis.tipo == TipoToken.KW_BOOL) {
             this.match(TipoToken.KW_BOOL);
+            this.tipo_dec = "bool";
             flag = true;
         } else if (this.preAnalisis.tipo == TipoToken.KW_CHAR) {
             this.match(TipoToken.KW_CHAR);
+            this.tipo_dec = "char";
             flag = true;
         }
         return flag;
@@ -617,10 +639,13 @@ class AnalizadorSintactico {
         return cad;
     }
 
-    public I(): Array<Sentencia> | undefined {
-        let list: Array<Sentencia>;
+    public I(): Array<Sentencia> | undefined {//Para obtener sentencias de asignacion,for,while,switch
+        let list: Array<Sentencia> | undefined;
         console.log("Entro a estado: I()");
-        list = this.LIV2();
+        if (this.checkPrimerosStandar(this.preAnalisis)) {
+            list = this.LIV2();
+        }
+
         if (this.flag_error == false && list != undefined) {
             return list;
         }
@@ -634,11 +659,19 @@ class AnalizadorSintactico {
         if (this.preAnalisis.tipo == TipoToken.SYM_LLAVEDER) {
             return lista;
         }
-        sentencia = this.SV2();
+        if (this.checkPrimerosStandar(this.preAnalisis)) {
+            sentencia = this.SV2();
+        }
+
         if (sentencia != undefined || sentencia != null) {
             lista.push(sentencia);
         }
-        this.joinListas(lista, this.LIPV2());
+        if (this.checkPrimerosStandar(this.preAnalisis)) {
+            this.joinListas(lista, this.LIPV2());
+        } else {
+            return lista;
+        }
+
         return lista;
     }
 
@@ -646,14 +679,21 @@ class AnalizadorSintactico {
         let lista: Array<Sentencia> = new Array<Sentencia>();
         let sentencia: Sentencia | undefined;
         console.log("Entro a estado: LIPV2()");
+        /*
         if (this.preAnalisis.tipo == TipoToken.SYM_LLAVEDER) {
             return lista;
         }
+        */
         sentencia = this.SV2();
         if (sentencia != null || sentencia != undefined) {
             lista.push(sentencia);
         }
-        return this.joinListas(lista, this.LIPV2());
+        if (this.checkPrimerosStandar(this.preAnalisis) == true) {
+            return this.joinListas(lista, this.LIPV2());
+        } else {
+            return lista;
+        }
+
     }
 
     public SV2(): Sentencia | undefined {
@@ -662,22 +702,144 @@ class AnalizadorSintactico {
 
         sentencia = this.CM();//COMENTARIOS MULTI-LINE O SINBLE-LINE
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         sentencia = this.D();//Para declaraciones de variables
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         sentencia = this.A();//PARA ASIGNACION A VARIABLES
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
         //this.SC();
-        //this.SR();
-        sentencia = this.SL();
+        sentencia = this.SC();//Para sentencias de control
         if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
             return sentencia;
         }
+        //this.SR();
+        sentencia = this.SR();//para sentencias de repeticion
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SL();
+        sentencia = this.SL();//Para sentenicas locales como:console.write, return,break etc
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+
+        return undefined;
+    }
+
+    public I3(): Array<Sentencia> | undefined {//Para obtener sentencias de asignacion,for,while,switch
+        let list: Array<Sentencia> | undefined;
+        console.log("Entro a estado: I3()");
+        if (this.checkPrimerosMain(this.preAnalisis)) {
+            list = this.LIV3();
+        }
+
+        if (this.flag_error == false && list != undefined) {
+            return list;
+        }
+        return undefined;
+    }
+
+    LIV3(): Array<Sentencia> {
+        let sentencia: Sentencia | undefined;
+        let lista: Array<Sentencia> = new Array<Sentencia>();
+        console.log("Entro a estado: LIV3()");
+        if (this.preAnalisis.tipo == TipoToken.SYM_LLAVEDER) {
+            return lista;
+        }
+        if (this.checkPrimerosMain(this.preAnalisis)) {
+            sentencia = this.SV3();
+        }
+
+        if (sentencia != undefined || sentencia != null) {
+            lista.push(sentencia);
+        }
+        if (this.checkPrimerosMain(this.preAnalisis)) {
+            this.joinListas(lista, this.LIPV3());
+        } else {
+            return lista;
+        }
+
+        return lista;
+    }
+
+    public LIPV3(): Array<Sentencia> {
+        let lista: Array<Sentencia> = new Array<Sentencia>();
+        let sentencia: Sentencia | undefined;
+        console.log("Entro a estado: LIPV3()");
+        /*
+        if (this.preAnalisis.tipo == TipoToken.SYM_LLAVEDER) {
+            return lista;
+        }
+        */
+        sentencia = this.SV3();
+        if (sentencia != null || sentencia != undefined) {
+            lista.push(sentencia);
+        }
+        if (this.checkPrimerosMain(this.preAnalisis) == true) {
+            return this.joinListas(lista, this.LIPV3());
+        } else {
+            return lista;
+        }
+
+    }
+
+    public SV3(): Sentencia | undefined {
+        let sentencia: Sentencia | undefined;
+        console.log("Entro a estado: SV3()");
+        //this.CM()
+        sentencia = this.CM();//COMENTARIOS MULTI-LINE O SINBLE-LINE
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.DFN()
+        sentencia = this.DFN();//Para declaraciones de variables funciones con tipo de retorno
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.M()
+        sentencia = this.M();//Para metodos void
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.A()
+        sentencia = this.A();//PARA ASIGNACION A VARIABLES
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SC();
+        sentencia = this.SC();//Para instruccion de control
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SR();
+        sentencia = this.SR();//Para instruciones de repeticion
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+        //this.SL();
+        sentencia = this.SL();
+        if (sentencia != undefined || sentencia != null) {
+            this.listaGeneralSentencias.push(sentencia);
+            return sentencia;
+        }
+
         return undefined;
     }
 
@@ -731,7 +893,7 @@ class AnalizadorSintactico {
             this.match(TipoToken.SYM_PARENTESISIZQ);
             this.match(TipoToken.SYM_PARENTESISDER);
             this.match(TipoToken.SYM_LLAVEIZQ);
-            let lista: Array<Sentencia> | undefined = this.I();
+            let lista: Array<Sentencia> | undefined = this.I3();
             this.match(TipoToken.SYM_LLAVEDER);
             if (this.flag_error == false) {
                 sentencia = new MetodoMain(lista);
@@ -743,24 +905,33 @@ class AnalizadorSintactico {
         return undefined;
     }
 
-    public SC(): Sentencia  |undefined {
+    public SC(): Sentencia | undefined {
         console.log("Entro a estado: SC()");
-        let sentencia:Sentencia | undefined;
-        if(this.preAnalisis.tipo == TipoToken.KW_IF){
+        let sentencia: Sentencia | undefined;
+        if (this.preAnalisis.tipo == TipoToken.KW_IF) {
             sentencia = this.IF();
-        }        
-        if(sentencia!= undefined){
-            return sentencia;
+            if (sentencia != undefined) {
+                return sentencia;
+            }
         }
+
+
         if (this.preAnalisis.tipo == TipoToken.KW_SWITCH) {
             this.match(TipoToken.KW_SWITCH);
             this.match(TipoToken.SYM_PARENTESISIZQ);
+            let variable: string = this.preAnalisis.lexema;
             this.match(TipoToken.IDENTIFICADOR);
             this.match(TipoToken.SYM_PARENTESISDER);
             this.match(TipoToken.SYM_LLAVEIZQ);
-            this.SW();
-            this.DF();
+            let lista: Array<SentenciaCase> | undefined = this.SWP();
             this.match(TipoToken.SYM_LLAVEDER);
+            if (this.flag_error == false && lista != undefined) {
+                sentencia = new SentenciaSwitch(variable, lista);
+                return sentencia;
+            } else {
+                this.flag_error = false;
+            }
+
         }
 
         return undefined;
@@ -825,14 +996,14 @@ class AnalizadorSintactico {
         if (elifsentencia != undefined) {
             listaifs.push(elifsentencia);
         }
-        if(this.preAnalisis.tipo == TipoToken.KW_ELSE){
-            let aux: Array<SentenciaIF>|undefined = this.joinListasIF(listaifs,this.LANI());
-            return aux;   
-                    
-        }else{
+        if (this.preAnalisis.tipo == TipoToken.KW_ELSE) {
+            let aux: Array<SentenciaIF> | undefined = this.joinListasIF(listaifs, this.LANI());
+            return aux;
+
+        } else {
             return listaifs;
         }
-        
+
         //return undefined;
     }
 
@@ -855,7 +1026,7 @@ class AnalizadorSintactico {
             }
         }
         return undefined;
-    }    
+    }
 
     public C(): string {
         let condicion: string = "";
@@ -904,36 +1075,71 @@ class AnalizadorSintactico {
         return operacion;
     }
 
-    public SW(): any {
+    public SWP(): Array<SentenciaCase> | undefined {
+        let listacases: Array<SentenciaCase> = new Array<SentenciaCase>();
         console.log("Entro a estado: SW()");
-        this.CS();
-        this.SWP();
+        let case_elem: SentenciaCase | undefined = this.CS();
+        if (case_elem != undefined) {
+            listacases.push(case_elem);
+        }
+        if (this.preAnalisis.tipo == TipoToken.KW_CASE) {
+            this.joinListasCase(listacases, this.SWP());
+        } else if (this.preAnalisis.tipo == TipoToken.KW_DEFAULT) {
+            let deflt: SentenciaCase | undefined = this.DF();
+            if (deflt != undefined) {
+                listacases.push(deflt);
+                return listacases;
+            }
+        } else {
+            return listacases;
+        }
+
+        return undefined;
     }
 
-    public SWP(): any {
+    public SWPP(): any {
         console.log("Entro a estado: SWP()");
         this.CS()
         this.SWP();
     }
 
-    public CS(): any {
+    public CS(): SentenciaCase | undefined {
         console.log("Entro a estado: CS()");
         if (this.preAnalisis.tipo == TipoToken.KW_CASE) {
             this.match(TipoToken.KW_CASE);
-            this.match(TipoToken.SYM_DOSPUNTOS);
+            let valor: string = this.preAnalisis.lexema;
             this.match(TipoToken.NUMERO);
-            this.LI();
+            this.match(TipoToken.SYM_DOSPUNTOS);
+            let tipo: TipoToken = this.getTipo(this.preAnalisis);
+            let sentence: Sentencia | undefined
+            if (tipo == TipoToken.IDENTIFICADOR) {
+                sentence = this.A();
+            }
             this.match(TipoToken.KW_BREAK)
+            this.match(TipoToken.SYM_PUNTOYCOMA);
+            if (this.flag_error == false && sentence != undefined) {
+                let sentencia: SentenciaCase = new SentenciaCase(sentence, valor);
+                return sentencia;
+            }
         }
+        return undefined;
     }
 
-    public DF(): any {
+    public DF(): SentenciaCase | undefined {
         console.log("Entro a estado: DF()");
         if (this.preAnalisis.tipo == TipoToken.KW_DEFAULT) {
             this.match(TipoToken.KW_DEFAULT);
             this.match(TipoToken.SYM_DOSPUNTOS);
-            this.LI();
+            let tipo: TipoToken = this.getTipo(this.preAnalisis);
+            if (tipo == TipoToken.KW_CONSOLE) {
+                let sent: Sentencia | undefined = this.SL();
+                if (sent != undefined) {
+                    let sentcase: SentenciaCase = new SentenciaCase(sent);
+                    return sentcase;
+                }
+            }
         }
+        return undefined;
     }
 
     public SR(): Sentencia | undefined {
@@ -1082,7 +1288,7 @@ class AnalizadorSintactico {
         }
     }
 
-    public getTipoError(tipo: TipoToken,token?:Token): string {
+    public getTipoError(tipo: TipoToken, token?: Token): string {
         //console.log("Se han encontrado errores durante el analisis sintactico!");
         //let cadena: string = "";
         let tp = "";
@@ -1278,8 +1484,47 @@ class AnalizadorSintactico {
         return a;
     }
 
+    private joinListasCase(a: Array<SentenciaCase>, b: Array<SentenciaCase> | undefined): Array<SentenciaCase> {
+        if (b != undefined) {
+            let size: number = b.length;
+            for (let i: number = 0; i < size; i++) {
+                a.push(b[i]);
+            }
+        }
+        return a;
+    }
+
     private getTipo(token: Token): TipoToken {
         return token.tipo;
+    }
+
+    private checkPrimerosStandar(token: Token): boolean {
+        let flag = false;
+        if (token.tipo == TipoToken.IDENTIFICADOR || token.tipo == TipoToken.KW_INT || token.tipo == TipoToken.KW_STRING
+            || token.tipo == TipoToken.KW_BOOL || token.tipo == TipoToken.KW_CHAR || token.tipo == TipoToken.KW_DOUBLE
+            || token.tipo == TipoToken.COMENTARIO_SL || token.tipo == TipoToken.COMENTARIO_ML ||
+            token.tipo == TipoToken.KW_FOR || token.tipo == TipoToken.KW_WHILE || token.tipo == TipoToken.KW_IF ||
+            token.tipo == TipoToken.KW_SWITCH || token.tipo == TipoToken.KW_CONTINUE ||
+            token.tipo == TipoToken.KW_BREAK || token.tipo == TipoToken.KW_RETURN || token.tipo == TipoToken.KW_CONSOLE
+            || token.tipo == TipoToken.KW_DO) {
+            flag = true;
+        }
+        return flag;
+    }
+
+    private checkPrimerosMain(token: Token):boolean{
+        let flag = false;
+        if(token.tipo == TipoToken.IDENTIFICADOR || token.tipo == TipoToken.KW_INT || token.tipo == TipoToken.KW_STRING
+            || token.tipo == TipoToken.KW_BOOL || token.tipo == TipoToken.KW_CHAR || token.tipo == TipoToken.KW_DOUBLE
+            || token.tipo == TipoToken.COMENTARIO_SL || token.tipo == TipoToken.COMENTARIO_ML ||
+            token.tipo == TipoToken.KW_FOR || token.tipo == TipoToken.KW_WHILE || token.tipo == TipoToken.KW_IF ||
+            token.tipo == TipoToken.KW_SWITCH || token.tipo == TipoToken.KW_CONTINUE ||
+            token.tipo == TipoToken.KW_BREAK || token.tipo == TipoToken.KW_RETURN || token.tipo == TipoToken.KW_CONSOLE
+            || token.tipo == TipoToken.KW_DO ||
+            token.tipo == TipoToken.KW_VOID){
+                flag = true;
+        }
+        return flag;
     }
 }
 

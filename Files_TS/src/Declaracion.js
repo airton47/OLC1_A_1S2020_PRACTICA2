@@ -18,8 +18,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var Sentencia_1 = __importDefault(require("./Sentencia"));
 var Declaracion = /** @class */ (function (_super) {
     __extends(Declaracion, _super);
-    function Declaracion(name, valor) {
+    function Declaracion(name, tipo, linea, valor) {
         var _this = _super.call(this) || this;
+        _this.tipo = tipo;
+        _this.linea = linea;
         _this.nombre = name;
         if (valor != undefined) {
             _this.expresion = valor;

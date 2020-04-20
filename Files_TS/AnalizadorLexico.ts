@@ -132,7 +132,7 @@ class AnalizadorLexico {
                         this.writeSalida("*********El analisis lexico de la entrada ha finalizado*********");
                         this.lista?.push(new Token(TipoToken.ULTIMO, ""));
                     } else if (chr == "\n" || chr == "\t" || chr == "\r" || chr == " ") {
-                        if (chr == "\t" || chr == "\r") {
+                        if (chr == "\n" || chr == "\r") {
                             linea++;
                             columna = 0;
                         }
@@ -312,7 +312,7 @@ class AnalizadorLexico {
                             this.addToken(TipoToken.KW_CASE, this.auxLex, linea, columna);
                         } else if (this.auxLex == "else") {
                             this.addToken(TipoToken.KW_ELSE, this.auxLex, linea, columna);
-                        } else if (this.auxLex == "dafault") {
+                        } else if (this.auxLex == "default") {
                             this.addToken(TipoToken.KW_DEFAULT, this.auxLex, linea, columna);
                         } else {
                             this.addToken(TipoToken.IDENTIFICADOR, this.auxLex, linea, columna);
