@@ -273,7 +273,7 @@ fs.readFile('entrada.cs', 'utf-8', (error, datos) => {
             }
             console.log("El reporte de variables ha sido creado con exito");
         });
-        //Genera archivo con tabla de errores encontrados durante el analisis
+        //Genera archivo con tabla de errores encontrados durante el analisis 
         var tablaErrores = var_main.salidaTablaErroresHTML;
         fs.writeFile('errores.html', tablaErrores, (error) => {
             if (error) {
