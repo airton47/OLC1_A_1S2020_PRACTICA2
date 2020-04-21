@@ -18,6 +18,8 @@ class MainApp {
     errores: Array<Token> = new Array<Token>();//lista erroes lexicos encontrados
     reporte: string = "";//
     salidaTablaErroresHTML = "";//texto para archivo de errores lexicos y sintactivos
+    salidaErroresLexicos = "";
+    salidaErroresSintacticos = "";
 
     analizar(text: string): void {
         let cuerpoPhyton: string = "";
@@ -72,7 +74,7 @@ class MainApp {
         html += "\n</head>";
         html += "\n<body>";
         html += "\n<table>";
-
+        
         html += "\n<tr><td> NO. </td> <td>TIPO ERROR</td> <td>LINEA </td> <td>COLUMNA</td> <td>DESCRIPCION</td></tr>";
         let size: number = lexicos.length;
         let token:Token;

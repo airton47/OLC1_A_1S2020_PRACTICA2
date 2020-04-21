@@ -19,6 +19,8 @@ var MainApp = /** @class */ (function () {
         this.errores = new Array(); //lista erroes lexicos encontrados
         this.reporte = ""; //
         this.salidaTablaErroresHTML = ""; //texto para archivo de errores lexicos y sintactivos
+        this.salidaErroresLexicos = "";
+        this.salidaErroresSintacticos = "";
     }
     MainApp.prototype.analizar = function (text) {
         var cuerpoPhyton = "";
@@ -252,7 +254,6 @@ var MainApp = /** @class */ (function () {
     };
     return MainApp;
 }());
-
 const fs = require('fs');
 var var_main = new MainApp();
 let entrada = 'Console.Write("Comienza el analisis");';
