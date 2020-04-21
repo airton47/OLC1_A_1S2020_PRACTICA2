@@ -1,7 +1,7 @@
-
-    
     void main()
     {
+
+        
         /*
         #################### Archivo de entrada #1 #################
         ## El objetivo de este archivo es evaluar el manejo   ######
@@ -13,14 +13,17 @@
         ####### String
         ####### Boolean
         */
-
+        Console.Write('<html><head><tittle>PageOnline</tittle></head><body><h1>Titulo1</h1></body></html>');
+        //return
         //Declaraciones basicas
         int x,y,z =520;
         double x1,y1,z1 = 3.14;
+        //break
         bool x2,y2,z2 = true;
         char x3,y3,z3 = 'x';
+        char x12 = x3;
         string x4,y4,z4 = "CadenaDefecto";
-        
+        //Console.Write('<html><head><tittle>Titulo de Pagina</title><body></body></head></html>');
         Console.Write(">>>>>>>>> Enteros <<<<<<<<<<<<<<<<");
         Console.Write("x debe ser 520, segun la tabla de simbolos tiene ["+x+"]");
         Console.Write("y debe ser 520, segun la tabla de simbolos tiene ["+y+"]");

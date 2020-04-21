@@ -23,9 +23,10 @@ class AnalizadorSintactico {
     preAnalisis!: Token;
     numPreAnalisis: number;
     flag_error: boolean;
-    tipo_dec:string;
-    linea :number;
-    listaGeneralSentencias:Array<SentenciaInterface>;
+    tipo_dec: string;
+    linea: number;
+    listaGeneralSentencias: Array<SentenciaInterface>;
+    listaErrores: Array<Token> = [];
 
     constructor() {
         this.listaSentencias = new Array<Sentencia>();
@@ -33,6 +34,7 @@ class AnalizadorSintactico {
         this.flag_error = false;
         this.tipo_dec = "";
         this.linea = 0;
+        //this.listaErrores = new Array<Token>();
         this.listaGeneralSentencias = new Array<SentenciaInterface>();
         //this.preAnalisis = new Token(TipoToken.ULTIMO, "");
         //this.listaTokens = new Array<Token>();
@@ -172,34 +174,35 @@ class AnalizadorSintactico {
         sentencia = this.CM();//COMENTARIOS MULTI-LINE O SINBLE-LINE
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
-        //this.FN();
-        //sentencia = this.FN();
-        //if (sentencia != undefined || sentencia != null) {
-        //
-        //}
+        //this.FND();
         sentencia = this.DFN();//Para declaraciones de variables o funciones con tipo de retorno
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.A();
         sentencia = this.A();//PARA ASIGNACION A VARIABLES
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.M();
         sentencia = this.M();//PARA METODOS VOID
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.SC();
         sentencia = this.SC();
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
 
@@ -207,12 +210,14 @@ class AnalizadorSintactico {
         sentencia = this.SR();
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.SL();
         sentencia = this.SL();
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
 
@@ -247,7 +252,11 @@ class AnalizadorSintactico {
             this.match(TipoToken.IDENTIFICADOR);
             sentencia = this.DFNP(id);
             return sentencia;
+        }else{
+            this.reportError(TipoToken.IDENTIFICADOR);
+            this.panicMode();
         }
+        
         return undefined;
     }
 
@@ -262,6 +271,7 @@ class AnalizadorSintactico {
         if (sentencia != undefined) {
             return sentencia;
         }
+        this.panicMode();
         return undefined;
         /*
         console.log("Entro a estado: D()");
@@ -294,15 +304,18 @@ class AnalizadorSintactico {
         let sentencia: Sentencia;
         let cad: string = "";
         id += this.LVP();
-        cad += this.AS();
+        let asig = this.AS();
+        cad += asig;
         if (this.preAnalisis.tipo == TipoToken.SYM_PUNTOYCOMA) {
             this.match(TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false && this.flag_error == false) {
-                sentencia = new Declaracion(id,this.tipo_dec,this.linea, cad);
+                sentencia = new Declaracion(id, this.tipo_dec, this.linea, cad);
                 return sentencia;
             } else {
                 this.flag_error = false;
             }
+        }else{
+            this.reportError(TipoToken.SYM_PUNTOYCOMA);
         }
         return undefined;
     }
@@ -314,14 +327,33 @@ class AnalizadorSintactico {
         if (flag == false) {
             return undefined;
         }
-        let variables: string = this.LV();
+        let variables:string = "";
+        let tipo:TipoToken = this.getTipo(this.preAnalisis);
+        if(tipo == TipoToken.IDENTIFICADOR){
+            variables += this.preAnalisis.lexema;
+            variables += this.LVP();
+            if(this.flag_error == true){
+                this.reportError(TipoToken.ERROR,"LISTA VARIABLES: (,ID)*");
+                this.panicMode();
+                return undefined;
+            }
+        }else{
+            this.reportError(TipoToken.IDENTIFICADOR);
+            this.panicMode();
+            return undefined;
+        }             
+        
         let expresion: string = this.AS();
         if (this.preAnalisis.tipo == TipoToken.SYM_PUNTOYCOMA) {
             this.match(TipoToken.SYM_PUNTOYCOMA);
+        }else{
+            this.reportError(TipoToken.SYM_PUNTOYCOMA);
+            this.panicMode();
+            return undefined;
         }
-        if (this.isValid(variables) && this.flag_error == false) {            
-            sentencia = new Declaracion(variables,this.tipo_dec,this.linea, expresion);
-                return sentencia;
+        if (this.isValid(variables) && this.flag_error == false) {
+            sentencia = new Declaracion(variables, this.tipo_dec, this.linea, expresion);
+            return sentencia;
             /*
             if (this.isValid(expresion)) {
                 sentencia = new Declaracion(variables,this.tipo_dec,this.linea, expresion);
@@ -370,7 +402,7 @@ class AnalizadorSintactico {
         if (this.preAnalisis.tipo == TipoToken.IDENTIFICADOR) {
             listvars += this.preAnalisis.lexema;
             this.match(TipoToken.IDENTIFICADOR);
-            return listvars += this.LVP();                        
+            return listvars += this.LVP();
         } else {
             return listvars;
         }
@@ -396,10 +428,10 @@ class AnalizadorSintactico {
             this.match(TipoToken.SYM_COMA);
             vars += this.preAnalisis.lexema;
             this.match(TipoToken.IDENTIFICADOR);
-            let tipo:TipoToken = this.getTipo(this.preAnalisis);
-            if(tipo == TipoToken.SYM_COMA){
+            let tipo: TipoToken = this.getTipo(this.preAnalisis);
+            if (tipo == TipoToken.SYM_COMA) {
                 vars += this.LVP();
-            }            
+            }
         }
         return vars;
     }
@@ -421,6 +453,10 @@ class AnalizadorSintactico {
             cad += this.preAnalisis.lexema;
             this.match(TipoToken.IDENTIFICADOR);
             cad += this.preAnalisis.lexema;
+            let tipo:TipoToken = this.getTipo(this.preAnalisis);
+            if(tipo == TipoToken.SYM_PUNTOYCOMA){
+                return cad;
+            }
             this.match(TipoToken.SYM_PARENTESISIZQ);
             cad += this.LP();
             cad += this.preAnalisis.lexema;
@@ -1016,16 +1052,16 @@ class AnalizadorSintactico {
         let senif: SentenciaIF;
         if (this.preAnalisis.tipo == TipoToken.KW_ELSE) {
             this.match(TipoToken.KW_ELSE);
-            let tipo:TipoToken = this.getTipo(this.preAnalisis);
-            if(tipo == TipoToken.SYM_LLAVEIZQ){
+            let tipo: TipoToken = this.getTipo(this.preAnalisis);
+            if (tipo == TipoToken.SYM_LLAVEIZQ) {
                 this.match(TipoToken.SYM_LLAVEIZQ);
                 let sentencias: Array<Sentencia> | undefined = this.I();
                 this.match(TipoToken.SYM_LLAVEDER);
                 if (this.flag_error == false) {
-                    senif = new SentenciaIF(undefined,sentencias);
+                    senif = new SentenciaIF(undefined, sentencias);
                     console.log(senif.printSentencia());
                     return senif;
-                }else{
+                } else {
                     return undefined;
                 }
             }
@@ -1256,7 +1292,7 @@ class AnalizadorSintactico {
                 return sentencia;
             }
         }
-
+        this.panicMode();
         return undefined;
     }
 
@@ -1305,173 +1341,380 @@ class AnalizadorSintactico {
         }
     }
 
-    public getTipoError(tipo: TipoToken, token?: Token): string {
+    private getTipoError(tipo: TipoToken, mensaje?: string): string {
         //console.log("Se han encontrado errores durante el analisis sintactico!");
         //let cadena: string = "";
         let tp = "";
-        switch (tipo) {
-            case TipoToken.CADENA_HTML:
-                tp = "CADENA_HTML";
-                break;
-            case TipoToken.CADENA_SIMPLE:
-                tp = "CADENA_SIMPLE";
-                break;
-            case TipoToken.COMENTARIO_ML:
-                tp = "COMENTARIO_ML";
-                break;
-            case TipoToken.COMENTARIO_SL:
-                tp = "COMENTARIO_SL";
-                break;
-            case TipoToken.ERROR:
-                tp = "ERROR";
-                break;
-            case TipoToken.IDENTIFICADOR:
-                tp = "IDENTIFICADOR";
-                break;
-            case TipoToken.KW_BOOL:
-                tp = "KW_BOOL";
-                break;
-            case TipoToken.KW_BREAK:
-                tp = "KW_BREAK";
-                break;
-            case TipoToken.KW_CASE:
-                tp = "KW_CASE";
-                break;
-            case TipoToken.KW_CHAR:
-                tp = "KW_CHAR";
-                break;
-            case TipoToken.KW_CONSOLE:
-                tp = "KW_CONSOLE";
-                break;
-            case TipoToken.KW_CONTINUE:
-                tp = "KW_CONTINUE";
-                break;
-            case TipoToken.KW_DO:
-                tp = "KW_DO";
-                break;
-            case TipoToken.KW_DOUBLE:
-                tp = "KW_DOUBLE";
-                break;
-            case TipoToken.KW_FALSE:
-                tp = "KW_FALSE";
-                break;
-            case TipoToken.KW_FOR:
-                tp = "KW_FOR";
-                break;
-            case TipoToken.KW_IF:
-                tp = "KW_IF";
-                break;
-            case TipoToken.KW_INT:
-                tp = "KW_INT";
-                break;
-            case TipoToken.KW_MAIN:
-                tp = "KW_MAIN";
-                break;
-            case TipoToken.KW_RETURN:
-                tp = "KW_RETURN";
-                break;
-            case TipoToken.KW_STRING:
-                tp = "KW_STRING";
-                break;
-            case TipoToken.KW_SWITCH:
-                tp = "KW_SWITCH";
-                break;
-            case TipoToken.KW_TRUE:
-                tp = "KW_TRUE";
-                break;
-            case TipoToken.KW_VOID:
-                tp = "KW_VOID";
-                break;
-            case TipoToken.KW_WHILE:
-                tp = "KW_WHILE";
-                break;
-            case TipoToken.KW_WRITE:
-                tp = "KW_WRITE";
-                break;
-            case TipoToken.NUMERO:
-                tp = "NUMERO";
-                break;
-            case TipoToken.SYM_AND:
-                tp = "SYM_AND";
-                break;
-            case TipoToken.SYM_COMA:
-                tp = "SYM_COMA";
-                break;
-            case TipoToken.SYM_COMPARACION:
-                tp = "SYM_COMPARACION";
-                break;
-            case TipoToken.SYM_DIFERENTFROM:
-                tp = "SYM_DIFERENTFROM";
-                break;
-            case TipoToken.SYM_DIVISION:
-                tp = "SYM_DIVISION";
-                break;
-            case TipoToken.SYM_IGUAL:
-                tp = "SYM_IGUAL";
-                break;
-            case TipoToken.SYM_LLAVEDER:
-                tp = "SYM_LLAVEDER";
-                break;
-            case TipoToken.SYM_LLAVEIZQ:
-                tp = "SYM_LLAVEIZQ";
-                break;
-            case TipoToken.SYM_MAS:
-                tp = "SYM_MAS";
-                break;
-            case TipoToken.SYM_MAYORIGUAL:
-                tp = "SYM_MAYORIGUAL";
-                break;
-            case TipoToken.SYM_MAYORQUE:
-                tp = "SYM_MAYORQUE";
-                break;
-            case TipoToken.SYM_MENORIGUAL:
-                tp = "SYM_MENORIGUAL";
-                break;
-            case TipoToken.SYM_MENORQUE:
-                tp = "SYM_MENORQUE";
-                break;
-            case TipoToken.SYM_MENOS:
-                tp = "SYM_MENOS";
-                break;
-            case TipoToken.SYM_MULTIPLICACION:
-                tp = "SYM_MULTIPLICACION";
-                break;
-            case TipoToken.SYM_NOT:
-                tp = "SYM_NOT";
-                break;
-            case TipoToken.SYM_OR:
-                tp = "SYM_OR";
-                break;
-            case TipoToken.SYM_PARENTESISDER:
-                tp = "SYM_PARENTESISDER";
-                break;
-            case TipoToken.SYM_PARENTESISIZQ:
-                tp = "SYM_PARENTESISIZQ";
-                break;
-            case TipoToken.SYM_PUNTO:
-                tp = "SYM_PUNTO";
-                break;
-            case TipoToken.SYM_PUNTOYCOMA:
-                tp = "SYM_PUNTOYCOMA";
-                break;
-            case TipoToken.KW_ELSE:
-                tp = "KW_ELSE";
-                break;
-            case TipoToken.KW_DEFAULT:
-                tp = "KW_DEFAULT";
-                break;
-            case TipoToken.CADENA_CHAR:
-                tp = "CADENA_CHAR";
-                break;
-            case TipoToken.SYM_DOSPUNTOS:
-                tp = "SYM_DOSPUNTOS";
-                break;
-            case TipoToken.ULTIMO:
-                tp = "ULTIMO";
-                break;
+        if (mensaje == undefined) {
+            switch (tipo) {
+                case TipoToken.CADENA_HTML:
+                    tp = "CADENA_HTML";
+                    break;
+                case TipoToken.CADENA_SIMPLE:
+                    tp = "CADENA_SIMPLE";
+                    break;
+                case TipoToken.COMENTARIO_ML:
+                    tp = "COMENTARIO_ML";
+                    break;
+                case TipoToken.COMENTARIO_SL:
+                    tp = "COMENTARIO_SL";
+                    break;
+                case TipoToken.ERROR:
+                    tp = "ERROR";
+                    break;
+                case TipoToken.IDENTIFICADOR:
+                    tp = "IDENTIFICADOR";
+                    break;
+                case TipoToken.KW_BOOL:
+                    tp = "KW_BOOL";
+                    break;
+                case TipoToken.KW_BREAK:
+                    tp = "KW_BREAK";
+                    break;
+                case TipoToken.KW_CASE:
+                    tp = "KW_CASE";
+                    break;
+                case TipoToken.KW_CHAR:
+                    tp = "KW_CHAR";
+                    break;
+                case TipoToken.KW_CONSOLE:
+                    tp = "KW_CONSOLE";
+                    break;
+                case TipoToken.KW_CONTINUE:
+                    tp = "KW_CONTINUE";
+                    break;
+                case TipoToken.KW_DO:
+                    tp = "KW_DO";
+                    break;
+                case TipoToken.KW_DOUBLE:
+                    tp = "KW_DOUBLE";
+                    break;
+                case TipoToken.KW_FALSE:
+                    tp = "KW_FALSE";
+                    break;
+                case TipoToken.KW_FOR:
+                    tp = "KW_FOR";
+                    break;
+                case TipoToken.KW_IF:
+                    tp = "KW_IF";
+                    break;
+                case TipoToken.KW_INT:
+                    tp = "KW_INT";
+                    break;
+                case TipoToken.KW_MAIN:
+                    tp = "KW_MAIN";
+                    break;
+                case TipoToken.KW_RETURN:
+                    tp = "KW_RETURN";
+                    break;
+                case TipoToken.KW_STRING:
+                    tp = "KW_STRING";
+                    break;
+                case TipoToken.KW_SWITCH:
+                    tp = "KW_SWITCH";
+                    break;
+                case TipoToken.KW_TRUE:
+                    tp = "KW_TRUE";
+                    break;
+                case TipoToken.KW_VOID:
+                    tp = "KW_VOID";
+                    break;
+                case TipoToken.KW_WHILE:
+                    tp = "KW_WHILE";
+                    break;
+                case TipoToken.KW_WRITE:
+                    tp = "KW_WRITE";
+                    break;
+                case TipoToken.NUMERO:
+                    tp = "NUMERO";
+                    break;
+                case TipoToken.SYM_AND:
+                    tp = "SYM_AND";
+                    break;
+                case TipoToken.SYM_COMA:
+                    tp = "SYM_COMA";
+                    break;
+                case TipoToken.SYM_COMPARACION:
+                    tp = "SYM_COMPARACION";
+                    break;
+                case TipoToken.SYM_DIFERENTFROM:
+                    tp = "SYM_DIFERENTFROM";
+                    break;
+                case TipoToken.SYM_DIVISION:
+                    tp = "SYM_DIVISION";
+                    break;
+                case TipoToken.SYM_IGUAL:
+                    tp = "SYM_IGUAL";
+                    break;
+                case TipoToken.SYM_LLAVEDER:
+                    tp = "SYM_LLAVEDER";
+                    break;
+                case TipoToken.SYM_LLAVEIZQ:
+                    tp = "SYM_LLAVEIZQ";
+                    break;
+                case TipoToken.SYM_MAS:
+                    tp = "SYM_MAS";
+                    break;
+                case TipoToken.SYM_MAYORIGUAL:
+                    tp = "SYM_MAYORIGUAL";
+                    break;
+                case TipoToken.SYM_MAYORQUE:
+                    tp = "SYM_MAYORQUE";
+                    break;
+                case TipoToken.SYM_MENORIGUAL:
+                    tp = "SYM_MENORIGUAL";
+                    break;
+                case TipoToken.SYM_MENORQUE:
+                    tp = "SYM_MENORQUE";
+                    break;
+                case TipoToken.SYM_MENOS:
+                    tp = "SYM_MENOS";
+                    break;
+                case TipoToken.SYM_MULTIPLICACION:
+                    tp = "SYM_MULTIPLICACION";
+                    break;
+                case TipoToken.SYM_NOT:
+                    tp = "SYM_NOT";
+                    break;
+                case TipoToken.SYM_OR:
+                    tp = "SYM_OR";
+                    break;
+                case TipoToken.SYM_PARENTESISDER:
+                    tp = "SYM_PARENTESISDER";
+                    break;
+                case TipoToken.SYM_PARENTESISIZQ:
+                    tp = "SYM_PARENTESISIZQ";
+                    break;
+                case TipoToken.SYM_PUNTO:
+                    tp = "SYM_PUNTO";
+                    break;
+                case TipoToken.SYM_PUNTOYCOMA:
+                    tp = "SYM_PUNTOYCOMA";
+                    break;
+                case TipoToken.KW_ELSE:
+                    tp = "KW_ELSE";
+                    break;
+                case TipoToken.KW_DEFAULT:
+                    tp = "KW_DEFAULT";
+                    break;
+                case TipoToken.CADENA_CHAR:
+                    tp = "CADENA_CHAR";
+                    break;
+                case TipoToken.SYM_DOSPUNTOS:
+                    tp = "SYM_DOSPUNTOS";
+                    break;
+                case TipoToken.ULTIMO:
+                    tp = "ULTIMO";
+                    break;
+            }
+        } else {
+            tp = mensaje;
         }
 
+        tp += ', se encontro: ' + this.preAnalisis.getTipo();
+        let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        wrong.setDescripcion(tp);
+        console.log(wrong.tokenToString());
+        this.listaErrores.push(wrong);
         return tp;
+    }
+
+    private reportError(tipo: TipoToken, mensaje?: string): string {
+        let tp = "Se esperaba:";
+        if (mensaje == undefined) {
+            switch (tipo) {
+                case TipoToken.CADENA_HTML:
+                    tp += "CADENA_HTML";
+                    break;
+                case TipoToken.CADENA_SIMPLE:
+                    tp += "CADENA_SIMPLE";
+                    break;
+                case TipoToken.COMENTARIO_ML:
+                    tp += "COMENTARIO_ML";
+                    break;
+                case TipoToken.COMENTARIO_SL:
+                    tp += "COMENTARIO_SL";
+                    break;
+                case TipoToken.ERROR:
+                    tp += "ERROR";
+                    break;
+                case TipoToken.IDENTIFICADOR:
+                    tp += "IDENTIFICADOR";
+                    break;
+                case TipoToken.KW_BOOL:
+                    tp += "KW_BOOL";
+                    break;
+                case TipoToken.KW_BREAK:
+                    tp += "KW_BREAK";
+                    break;
+                case TipoToken.KW_CASE:
+                    tp += "KW_CASE";
+                    break;
+                case TipoToken.KW_CHAR:
+                    tp += "KW_CHAR";
+                    break;
+                case TipoToken.KW_CONSOLE:
+                    tp += "KW_CONSOLE";
+                    break;
+                case TipoToken.KW_CONTINUE:
+                    tp += "KW_CONTINUE";
+                    break;
+                case TipoToken.KW_DO:
+                    tp += "KW_DO";
+                    break;
+                case TipoToken.KW_DOUBLE:
+                    tp += "KW_DOUBLE";
+                    break;
+                case TipoToken.KW_FALSE:
+                    tp += "KW_FALSE";
+                    break;
+                case TipoToken.KW_FOR:
+                    tp += "KW_FOR";
+                    break;
+                case TipoToken.KW_IF:
+                    tp += "KW_IF";
+                    break;
+                case TipoToken.KW_INT:
+                    tp += "KW_INT";
+                    break;
+                case TipoToken.KW_MAIN:
+                    tp += "KW_MAIN";
+                    break;
+                case TipoToken.KW_RETURN:
+                    tp += "KW_RETURN";
+                    break;
+                case TipoToken.KW_STRING:
+                    tp += "KW_STRING";
+                    break;
+                case TipoToken.KW_SWITCH:
+                    tp += "KW_SWITCH";
+                    break;
+                case TipoToken.KW_TRUE:
+                    tp += "KW_TRUE";
+                    break;
+                case TipoToken.KW_VOID:
+                    tp += "KW_VOID";
+                    break;
+                case TipoToken.KW_WHILE:
+                    tp += "KW_WHILE";
+                    break;
+                case TipoToken.KW_WRITE:
+                    tp += "KW_WRITE";
+                    break;
+                case TipoToken.NUMERO:
+                    tp += "NUMERO";
+                    break;
+                case TipoToken.SYM_AND:
+                    tp += "SYM_AND";
+                    break;
+                case TipoToken.SYM_COMA:
+                    tp += "SYM_COMA";
+                    break;
+                case TipoToken.SYM_COMPARACION:
+                    tp += "SYM_COMPARACION";
+                    break;
+                case TipoToken.SYM_DIFERENTFROM:
+                    tp += "SYM_DIFERENTFROM";
+                    break;
+                case TipoToken.SYM_DIVISION:
+                    tp += "SYM_DIVISION";
+                    break;
+                case TipoToken.SYM_IGUAL:
+                    tp += "SYM_IGUAL";
+                    break;
+                case TipoToken.SYM_LLAVEDER:
+                    tp += "SYM_LLAVEDER";
+                    break;
+                case TipoToken.SYM_LLAVEIZQ:
+                    tp += "SYM_LLAVEIZQ";
+                    break;
+                case TipoToken.SYM_MAS:
+                    tp += "SYM_MAS";
+                    break;
+                case TipoToken.SYM_MAYORIGUAL:
+                    tp += "SYM_MAYORIGUAL";
+                    break;
+                case TipoToken.SYM_MAYORQUE:
+                    tp += "SYM_MAYORQUE";
+                    break;
+                case TipoToken.SYM_MENORIGUAL:
+                    tp += "SYM_MENORIGUAL";
+                    break;
+                case TipoToken.SYM_MENORQUE:
+                    tp += "SYM_MENORQUE";
+                    break;
+                case TipoToken.SYM_MENOS:
+                    tp += "SYM_MENOS";
+                    break;
+                case TipoToken.SYM_MULTIPLICACION:
+                    tp += "SYM_MULTIPLICACION";
+                    break;
+                case TipoToken.SYM_NOT:
+                    tp += "SYM_NOT";
+                    break;
+                case TipoToken.SYM_OR:
+                    tp += "SYM_OR";
+                    break;
+                case TipoToken.SYM_PARENTESISDER:
+                    tp += "SYM_PARENTESISDER";
+                    break;
+                case TipoToken.SYM_PARENTESISIZQ:
+                    tp += "SYM_PARENTESISIZQ";
+                    break;
+                case TipoToken.SYM_PUNTO:
+                    tp += "SYM_PUNTO";
+                    break;
+                case TipoToken.SYM_PUNTOYCOMA:
+                    tp += "SYM_PUNTOYCOMA";
+                    break;
+                case TipoToken.KW_ELSE:
+                    tp += "KW_ELSE";
+                    break;
+                case TipoToken.KW_DEFAULT:
+                    tp += "KW_DEFAULT";
+                    break;
+                case TipoToken.CADENA_CHAR:
+                    tp += "CADENA_CHAR";
+                    break;
+                case TipoToken.SYM_DOSPUNTOS:
+                    tp += "SYM_DOSPUNTOS";
+                    break;
+                case TipoToken.ULTIMO:
+                    tp += "ULTIMO";
+                    break;
+            }
+        } else {
+            tp += mensaje;
+        }
+
+        tp += ', se encontro: ' + this.preAnalisis.getTipo();
+        let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        wrong.setDescripcion(tp);
+        console.log(wrong.tokenToString());
+        this.listaErrores.push(wrong);
+        if (this.preAnalisis.tipo != TipoToken.ULTIMO) {
+            this.numPreAnalisis += 1;
+            this.preAnalisis = this.listaTokens[this.numPreAnalisis];
+        }
+        console.log(tp);
+        return tp;
+    }
+
+    private panicMode() {
+        this.flag_error = false;
+        let flag: boolean = true;
+        let size: number = this.listaTokens.length;
+        while (flag || this.numPreAnalisis < size) {
+            this.preAnalisis = this.listaTokens[this.numPreAnalisis];
+            console.log(this.preAnalisis.lexema);
+            if (this.preAnalisis.tipo == TipoToken.SYM_PUNTOYCOMA || this.preAnalisis.tipo == TipoToken.SYM_LLAVEDER) {
+                this.numPreAnalisis++;
+                this.preAnalisis = this.listaTokens[this.numPreAnalisis];
+                flag = false;
+                return;
+            }
+            this.numPreAnalisis++;
+        }
     }
 
     public printLista(): void {
@@ -1529,17 +1772,17 @@ class AnalizadorSintactico {
         return flag;
     }
 
-    private checkPrimerosMain(token: Token):boolean{
+    private checkPrimerosMain(token: Token): boolean {
         let flag = false;
-        if(token.tipo == TipoToken.IDENTIFICADOR || token.tipo == TipoToken.KW_INT || token.tipo == TipoToken.KW_STRING
+        if (token.tipo == TipoToken.IDENTIFICADOR || token.tipo == TipoToken.KW_INT || token.tipo == TipoToken.KW_STRING
             || token.tipo == TipoToken.KW_BOOL || token.tipo == TipoToken.KW_CHAR || token.tipo == TipoToken.KW_DOUBLE
             || token.tipo == TipoToken.COMENTARIO_SL || token.tipo == TipoToken.COMENTARIO_ML ||
             token.tipo == TipoToken.KW_FOR || token.tipo == TipoToken.KW_WHILE || token.tipo == TipoToken.KW_IF ||
             token.tipo == TipoToken.KW_SWITCH || token.tipo == TipoToken.KW_CONTINUE ||
             token.tipo == TipoToken.KW_BREAK || token.tipo == TipoToken.KW_RETURN || token.tipo == TipoToken.KW_CONSOLE
             || token.tipo == TipoToken.KW_DO ||
-            token.tipo == TipoToken.KW_VOID){
-                flag = true;
+            token.tipo == TipoToken.KW_VOID) {
+            flag = true;
         }
         return flag;
     }

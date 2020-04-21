@@ -16,9 +16,13 @@ var Token = /** @class */ (function () {
         else {
             this.columna = columna;
         }
+        this.descripcion = "";
     }
     Token.prototype.getTipoToken = function () {
         return this.tipo;
+    };
+    Token.prototype.setDescripcion = function (desc) {
+        this.descripcion = desc;
     };
     Token.prototype.getTipo = function () {
         var tp = "";
@@ -182,6 +186,9 @@ var Token = /** @class */ (function () {
             case TipoToken.ULTIMO:
                 tp = "ULTIMO";
                 break;
+            case TipoToken.ERRORS:
+                tp = "ERRORS";
+                break;
         }
         return tp;
     };
@@ -248,6 +255,7 @@ var TipoToken;
     TipoToken[TipoToken["KW_DEFAULT"] = 50] = "KW_DEFAULT";
     TipoToken[TipoToken["ULTIMO"] = 51] = "ULTIMO";
     TipoToken[TipoToken["CADENA_CHAR"] = 52] = "CADENA_CHAR";
+    TipoToken[TipoToken["ERRORS"] = 53] = "ERRORS";
 })(TipoToken || (TipoToken = {}));
 exports.TipoToken = TipoToken;
 ;

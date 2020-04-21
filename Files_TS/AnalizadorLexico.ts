@@ -138,9 +138,9 @@ class AnalizadorLexico {
                         colaux = columna;
                     } else if (chr == "#" && i == size - 1) {
                         this.writeSalida("*********El analisis lexico de la entrada ha finalizado*********");
-                        this.lista?.push(new Token(TipoToken.ULTIMO, ""));
+                        this.lista?.push(new Token(TipoToken.ULTIMO,"",0,0,""));
                     } else if (chr == "\n" || chr == "\t" || chr == "\r" || chr == " ") {
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -226,7 +226,7 @@ class AnalizadorLexico {
                     if (chr != "*") {
                         this.auxLex += chr;
                         this.estado = 7;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -243,7 +243,7 @@ class AnalizadorLexico {
                     } else {
                         this.auxLex += chr;
                         this.estado = 7;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -332,7 +332,7 @@ class AnalizadorLexico {
                     if (chr != "\"") {
                         this.auxLex += chr;
                         this.estado = 12;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -348,7 +348,7 @@ class AnalizadorLexico {
                         this.estado = 14;
                     } else {
                         this.auxLex += chr;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -376,7 +376,7 @@ class AnalizadorLexico {
                         this.addToken(TipoToken.CADENA_CHAR, this.auxLex, linea, columna);
                     } else {
                         this.auxLex += chr;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -386,7 +386,7 @@ class AnalizadorLexico {
                 case 15:
                     if (chr != "'") {
                         this.auxLex += chr;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -401,7 +401,7 @@ class AnalizadorLexico {
                         this.auxLex+=chr;
                         this.addToken(TipoToken.SYM_AND,this.auxLex,linea,columna);
                     }else{
-                        this.addToken(TipoToken.ERROR,chr.toString(),linea,columna);
+                        this.addToken(TipoToken.ERROR,"&",linea,columna);
                         i = i-1;
                     }
                     break;
@@ -410,7 +410,7 @@ class AnalizadorLexico {
                         this.auxLex+=chr;
                         this.addToken(TipoToken.SYM_OR,this.auxLex,linea,columna);
                     }else{
-                        this.addToken(TipoToken.ERROR,chr.toString(),linea,columna);
+                        this.addToken(TipoToken.ERROR,"|",linea,columna);
                         i = i-1;
                     }
                     break;

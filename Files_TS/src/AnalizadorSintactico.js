@@ -19,11 +19,13 @@ var SentenciaCase_1 = __importDefault(require("./SentenciaCase"));
 var SentenciaSwitch_1 = __importDefault(require("./SentenciaSwitch"));
 var AnalizadorSintactico = /** @class */ (function () {
     function AnalizadorSintactico() {
+        this.listaErrores = [];
         this.listaSentencias = new Array();
         this.numPreAnalisis = 0;
         this.flag_error = false;
         this.tipo_dec = "";
         this.linea = 0;
+        //this.listaErrores = new Array<Token>();
         this.listaGeneralSentencias = new Array();
         //this.preAnalisis = new Token(TipoToken.ULTIMO, "");
         //this.listaTokens = new Array<Token>();
@@ -154,46 +156,49 @@ var AnalizadorSintactico = /** @class */ (function () {
         sentencia = this.CM(); //COMENTARIOS MULTI-LINE O SINBLE-LINE
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
-        //this.FN();
-        //sentencia = this.FN();
-        //if (sentencia != undefined || sentencia != null) {
-        //
-        //}
+        //this.FND();
         sentencia = this.DFN(); //Para declaraciones de variables o funciones con tipo de retorno
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.A();
         sentencia = this.A(); //PARA ASIGNACION A VARIABLES
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.M();
         sentencia = this.M(); //PARA METODOS VOID
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.SC();
         sentencia = this.SC();
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.SR();
         sentencia = this.SR();
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         //this.SL();
         sentencia = this.SL();
         if (sentencia != undefined || sentencia != null) {
             this.listaGeneralSentencias.push(sentencia);
+            this.flag_error = false;
             return sentencia;
         }
         return undefined;
@@ -227,6 +232,10 @@ var AnalizadorSintactico = /** @class */ (function () {
             sentencia = this.DFNP(id);
             return sentencia;
         }
+        else {
+            this.reportError(Token_1.TipoToken.IDENTIFICADOR);
+            this.panicMode();
+        }
         return undefined;
     };
     AnalizadorSintactico.prototype.DFNP = function (id) {
@@ -240,6 +249,7 @@ var AnalizadorSintactico = /** @class */ (function () {
         if (sentencia != undefined) {
             return sentencia;
         }
+        this.panicMode();
         return undefined;
         /*
         console.log("Entro a estado: D()");
@@ -271,7 +281,8 @@ var AnalizadorSintactico = /** @class */ (function () {
         var sentencia;
         var cad = "";
         id += this.LVP();
-        cad += this.AS();
+        var asig = this.AS();
+        cad += asig;
         if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_PUNTOYCOMA) {
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
             if (this.flag_error == false && this.flag_error == false) {
@@ -282,6 +293,9 @@ var AnalizadorSintactico = /** @class */ (function () {
                 this.flag_error = false;
             }
         }
+        else {
+            this.reportError(Token_1.TipoToken.SYM_PUNTOYCOMA);
+        }
         return undefined;
     };
     AnalizadorSintactico.prototype.D = function () {
@@ -291,10 +305,30 @@ var AnalizadorSintactico = /** @class */ (function () {
         if (flag == false) {
             return undefined;
         }
-        var variables = this.LV();
+        var variables = "";
+        var tipo = this.getTipo(this.preAnalisis);
+        if (tipo == Token_1.TipoToken.IDENTIFICADOR) {
+            variables += this.preAnalisis.lexema;
+            variables += this.LVP();
+            if (this.flag_error == true) {
+                this.reportError(Token_1.TipoToken.ERROR, "LISTA VARIABLES: (,ID)*");
+                this.panicMode();
+                return undefined;
+            }
+        }
+        else {
+            this.reportError(Token_1.TipoToken.IDENTIFICADOR);
+            this.panicMode();
+            return undefined;
+        }
         var expresion = this.AS();
         if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_PUNTOYCOMA) {
             this.match(Token_1.TipoToken.SYM_PUNTOYCOMA);
+        }
+        else {
+            this.reportError(Token_1.TipoToken.SYM_PUNTOYCOMA);
+            this.panicMode();
+            return undefined;
         }
         if (this.isValid(variables) && this.flag_error == false) {
             sentencia = new Declaracion_1.default(variables, this.tipo_dec, this.linea, expresion);
@@ -399,6 +433,10 @@ var AnalizadorSintactico = /** @class */ (function () {
             cad += this.preAnalisis.lexema;
             this.match(Token_1.TipoToken.IDENTIFICADOR);
             cad += this.preAnalisis.lexema;
+            var tipo = this.getTipo(this.preAnalisis);
+            if (tipo == Token_1.TipoToken.SYM_PUNTOYCOMA) {
+                return cad;
+            }
             this.match(Token_1.TipoToken.SYM_PARENTESISIZQ);
             cad += this.LP();
             cad += this.preAnalisis.lexema;
@@ -1207,6 +1245,7 @@ var AnalizadorSintactico = /** @class */ (function () {
                 return sentencia;
             }
         }
+        this.panicMode();
         return undefined;
     };
     AnalizadorSintactico.prototype.LE = function () {
@@ -1250,172 +1289,378 @@ var AnalizadorSintactico = /** @class */ (function () {
             return true;
         }
     };
-    AnalizadorSintactico.prototype.getTipoError = function (tipo, token) {
+    AnalizadorSintactico.prototype.getTipoError = function (tipo, mensaje) {
         //console.log("Se han encontrado errores durante el analisis sintactico!");
         //let cadena: string = "";
         var tp = "";
-        switch (tipo) {
-            case Token_1.TipoToken.CADENA_HTML:
-                tp = "CADENA_HTML";
-                break;
-            case Token_1.TipoToken.CADENA_SIMPLE:
-                tp = "CADENA_SIMPLE";
-                break;
-            case Token_1.TipoToken.COMENTARIO_ML:
-                tp = "COMENTARIO_ML";
-                break;
-            case Token_1.TipoToken.COMENTARIO_SL:
-                tp = "COMENTARIO_SL";
-                break;
-            case Token_1.TipoToken.ERROR:
-                tp = "ERROR";
-                break;
-            case Token_1.TipoToken.IDENTIFICADOR:
-                tp = "IDENTIFICADOR";
-                break;
-            case Token_1.TipoToken.KW_BOOL:
-                tp = "KW_BOOL";
-                break;
-            case Token_1.TipoToken.KW_BREAK:
-                tp = "KW_BREAK";
-                break;
-            case Token_1.TipoToken.KW_CASE:
-                tp = "KW_CASE";
-                break;
-            case Token_1.TipoToken.KW_CHAR:
-                tp = "KW_CHAR";
-                break;
-            case Token_1.TipoToken.KW_CONSOLE:
-                tp = "KW_CONSOLE";
-                break;
-            case Token_1.TipoToken.KW_CONTINUE:
-                tp = "KW_CONTINUE";
-                break;
-            case Token_1.TipoToken.KW_DO:
-                tp = "KW_DO";
-                break;
-            case Token_1.TipoToken.KW_DOUBLE:
-                tp = "KW_DOUBLE";
-                break;
-            case Token_1.TipoToken.KW_FALSE:
-                tp = "KW_FALSE";
-                break;
-            case Token_1.TipoToken.KW_FOR:
-                tp = "KW_FOR";
-                break;
-            case Token_1.TipoToken.KW_IF:
-                tp = "KW_IF";
-                break;
-            case Token_1.TipoToken.KW_INT:
-                tp = "KW_INT";
-                break;
-            case Token_1.TipoToken.KW_MAIN:
-                tp = "KW_MAIN";
-                break;
-            case Token_1.TipoToken.KW_RETURN:
-                tp = "KW_RETURN";
-                break;
-            case Token_1.TipoToken.KW_STRING:
-                tp = "KW_STRING";
-                break;
-            case Token_1.TipoToken.KW_SWITCH:
-                tp = "KW_SWITCH";
-                break;
-            case Token_1.TipoToken.KW_TRUE:
-                tp = "KW_TRUE";
-                break;
-            case Token_1.TipoToken.KW_VOID:
-                tp = "KW_VOID";
-                break;
-            case Token_1.TipoToken.KW_WHILE:
-                tp = "KW_WHILE";
-                break;
-            case Token_1.TipoToken.KW_WRITE:
-                tp = "KW_WRITE";
-                break;
-            case Token_1.TipoToken.NUMERO:
-                tp = "NUMERO";
-                break;
-            case Token_1.TipoToken.SYM_AND:
-                tp = "SYM_AND";
-                break;
-            case Token_1.TipoToken.SYM_COMA:
-                tp = "SYM_COMA";
-                break;
-            case Token_1.TipoToken.SYM_COMPARACION:
-                tp = "SYM_COMPARACION";
-                break;
-            case Token_1.TipoToken.SYM_DIFERENTFROM:
-                tp = "SYM_DIFERENTFROM";
-                break;
-            case Token_1.TipoToken.SYM_DIVISION:
-                tp = "SYM_DIVISION";
-                break;
-            case Token_1.TipoToken.SYM_IGUAL:
-                tp = "SYM_IGUAL";
-                break;
-            case Token_1.TipoToken.SYM_LLAVEDER:
-                tp = "SYM_LLAVEDER";
-                break;
-            case Token_1.TipoToken.SYM_LLAVEIZQ:
-                tp = "SYM_LLAVEIZQ";
-                break;
-            case Token_1.TipoToken.SYM_MAS:
-                tp = "SYM_MAS";
-                break;
-            case Token_1.TipoToken.SYM_MAYORIGUAL:
-                tp = "SYM_MAYORIGUAL";
-                break;
-            case Token_1.TipoToken.SYM_MAYORQUE:
-                tp = "SYM_MAYORQUE";
-                break;
-            case Token_1.TipoToken.SYM_MENORIGUAL:
-                tp = "SYM_MENORIGUAL";
-                break;
-            case Token_1.TipoToken.SYM_MENORQUE:
-                tp = "SYM_MENORQUE";
-                break;
-            case Token_1.TipoToken.SYM_MENOS:
-                tp = "SYM_MENOS";
-                break;
-            case Token_1.TipoToken.SYM_MULTIPLICACION:
-                tp = "SYM_MULTIPLICACION";
-                break;
-            case Token_1.TipoToken.SYM_NOT:
-                tp = "SYM_NOT";
-                break;
-            case Token_1.TipoToken.SYM_OR:
-                tp = "SYM_OR";
-                break;
-            case Token_1.TipoToken.SYM_PARENTESISDER:
-                tp = "SYM_PARENTESISDER";
-                break;
-            case Token_1.TipoToken.SYM_PARENTESISIZQ:
-                tp = "SYM_PARENTESISIZQ";
-                break;
-            case Token_1.TipoToken.SYM_PUNTO:
-                tp = "SYM_PUNTO";
-                break;
-            case Token_1.TipoToken.SYM_PUNTOYCOMA:
-                tp = "SYM_PUNTOYCOMA";
-                break;
-            case Token_1.TipoToken.KW_ELSE:
-                tp = "KW_ELSE";
-                break;
-            case Token_1.TipoToken.KW_DEFAULT:
-                tp = "KW_DEFAULT";
-                break;
-            case Token_1.TipoToken.CADENA_CHAR:
-                tp = "CADENA_CHAR";
-                break;
-            case Token_1.TipoToken.SYM_DOSPUNTOS:
-                tp = "SYM_DOSPUNTOS";
-                break;
-            case Token_1.TipoToken.ULTIMO:
-                tp = "ULTIMO";
-                break;
+        if (mensaje == undefined) {
+            switch (tipo) {
+                case Token_1.TipoToken.CADENA_HTML:
+                    tp = "CADENA_HTML";
+                    break;
+                case Token_1.TipoToken.CADENA_SIMPLE:
+                    tp = "CADENA_SIMPLE";
+                    break;
+                case Token_1.TipoToken.COMENTARIO_ML:
+                    tp = "COMENTARIO_ML";
+                    break;
+                case Token_1.TipoToken.COMENTARIO_SL:
+                    tp = "COMENTARIO_SL";
+                    break;
+                case Token_1.TipoToken.ERROR:
+                    tp = "ERROR";
+                    break;
+                case Token_1.TipoToken.IDENTIFICADOR:
+                    tp = "IDENTIFICADOR";
+                    break;
+                case Token_1.TipoToken.KW_BOOL:
+                    tp = "KW_BOOL";
+                    break;
+                case Token_1.TipoToken.KW_BREAK:
+                    tp = "KW_BREAK";
+                    break;
+                case Token_1.TipoToken.KW_CASE:
+                    tp = "KW_CASE";
+                    break;
+                case Token_1.TipoToken.KW_CHAR:
+                    tp = "KW_CHAR";
+                    break;
+                case Token_1.TipoToken.KW_CONSOLE:
+                    tp = "KW_CONSOLE";
+                    break;
+                case Token_1.TipoToken.KW_CONTINUE:
+                    tp = "KW_CONTINUE";
+                    break;
+                case Token_1.TipoToken.KW_DO:
+                    tp = "KW_DO";
+                    break;
+                case Token_1.TipoToken.KW_DOUBLE:
+                    tp = "KW_DOUBLE";
+                    break;
+                case Token_1.TipoToken.KW_FALSE:
+                    tp = "KW_FALSE";
+                    break;
+                case Token_1.TipoToken.KW_FOR:
+                    tp = "KW_FOR";
+                    break;
+                case Token_1.TipoToken.KW_IF:
+                    tp = "KW_IF";
+                    break;
+                case Token_1.TipoToken.KW_INT:
+                    tp = "KW_INT";
+                    break;
+                case Token_1.TipoToken.KW_MAIN:
+                    tp = "KW_MAIN";
+                    break;
+                case Token_1.TipoToken.KW_RETURN:
+                    tp = "KW_RETURN";
+                    break;
+                case Token_1.TipoToken.KW_STRING:
+                    tp = "KW_STRING";
+                    break;
+                case Token_1.TipoToken.KW_SWITCH:
+                    tp = "KW_SWITCH";
+                    break;
+                case Token_1.TipoToken.KW_TRUE:
+                    tp = "KW_TRUE";
+                    break;
+                case Token_1.TipoToken.KW_VOID:
+                    tp = "KW_VOID";
+                    break;
+                case Token_1.TipoToken.KW_WHILE:
+                    tp = "KW_WHILE";
+                    break;
+                case Token_1.TipoToken.KW_WRITE:
+                    tp = "KW_WRITE";
+                    break;
+                case Token_1.TipoToken.NUMERO:
+                    tp = "NUMERO";
+                    break;
+                case Token_1.TipoToken.SYM_AND:
+                    tp = "SYM_AND";
+                    break;
+                case Token_1.TipoToken.SYM_COMA:
+                    tp = "SYM_COMA";
+                    break;
+                case Token_1.TipoToken.SYM_COMPARACION:
+                    tp = "SYM_COMPARACION";
+                    break;
+                case Token_1.TipoToken.SYM_DIFERENTFROM:
+                    tp = "SYM_DIFERENTFROM";
+                    break;
+                case Token_1.TipoToken.SYM_DIVISION:
+                    tp = "SYM_DIVISION";
+                    break;
+                case Token_1.TipoToken.SYM_IGUAL:
+                    tp = "SYM_IGUAL";
+                    break;
+                case Token_1.TipoToken.SYM_LLAVEDER:
+                    tp = "SYM_LLAVEDER";
+                    break;
+                case Token_1.TipoToken.SYM_LLAVEIZQ:
+                    tp = "SYM_LLAVEIZQ";
+                    break;
+                case Token_1.TipoToken.SYM_MAS:
+                    tp = "SYM_MAS";
+                    break;
+                case Token_1.TipoToken.SYM_MAYORIGUAL:
+                    tp = "SYM_MAYORIGUAL";
+                    break;
+                case Token_1.TipoToken.SYM_MAYORQUE:
+                    tp = "SYM_MAYORQUE";
+                    break;
+                case Token_1.TipoToken.SYM_MENORIGUAL:
+                    tp = "SYM_MENORIGUAL";
+                    break;
+                case Token_1.TipoToken.SYM_MENORQUE:
+                    tp = "SYM_MENORQUE";
+                    break;
+                case Token_1.TipoToken.SYM_MENOS:
+                    tp = "SYM_MENOS";
+                    break;
+                case Token_1.TipoToken.SYM_MULTIPLICACION:
+                    tp = "SYM_MULTIPLICACION";
+                    break;
+                case Token_1.TipoToken.SYM_NOT:
+                    tp = "SYM_NOT";
+                    break;
+                case Token_1.TipoToken.SYM_OR:
+                    tp = "SYM_OR";
+                    break;
+                case Token_1.TipoToken.SYM_PARENTESISDER:
+                    tp = "SYM_PARENTESISDER";
+                    break;
+                case Token_1.TipoToken.SYM_PARENTESISIZQ:
+                    tp = "SYM_PARENTESISIZQ";
+                    break;
+                case Token_1.TipoToken.SYM_PUNTO:
+                    tp = "SYM_PUNTO";
+                    break;
+                case Token_1.TipoToken.SYM_PUNTOYCOMA:
+                    tp = "SYM_PUNTOYCOMA";
+                    break;
+                case Token_1.TipoToken.KW_ELSE:
+                    tp = "KW_ELSE";
+                    break;
+                case Token_1.TipoToken.KW_DEFAULT:
+                    tp = "KW_DEFAULT";
+                    break;
+                case Token_1.TipoToken.CADENA_CHAR:
+                    tp = "CADENA_CHAR";
+                    break;
+                case Token_1.TipoToken.SYM_DOSPUNTOS:
+                    tp = "SYM_DOSPUNTOS";
+                    break;
+                case Token_1.TipoToken.ULTIMO:
+                    tp = "ULTIMO";
+                    break;
+            }
         }
+        else {
+            tp = mensaje;
+        }
+        tp += ', se encontro: ' + this.preAnalisis.getTipo();
+        var wrong = new Token_1.Token(Token_1.TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        wrong.setDescripcion(tp);
+        console.log(wrong.tokenToString());
+        this.listaErrores.push(wrong);
         return tp;
+    };
+    AnalizadorSintactico.prototype.reportError = function (tipo, mensaje) {
+        var tp = "Se esperaba:";
+        if (mensaje == undefined) {
+            switch (tipo) {
+                case Token_1.TipoToken.CADENA_HTML:
+                    tp += "CADENA_HTML";
+                    break;
+                case Token_1.TipoToken.CADENA_SIMPLE:
+                    tp += "CADENA_SIMPLE";
+                    break;
+                case Token_1.TipoToken.COMENTARIO_ML:
+                    tp += "COMENTARIO_ML";
+                    break;
+                case Token_1.TipoToken.COMENTARIO_SL:
+                    tp += "COMENTARIO_SL";
+                    break;
+                case Token_1.TipoToken.ERROR:
+                    tp += "ERROR";
+                    break;
+                case Token_1.TipoToken.IDENTIFICADOR:
+                    tp += "IDENTIFICADOR";
+                    break;
+                case Token_1.TipoToken.KW_BOOL:
+                    tp += "KW_BOOL";
+                    break;
+                case Token_1.TipoToken.KW_BREAK:
+                    tp += "KW_BREAK";
+                    break;
+                case Token_1.TipoToken.KW_CASE:
+                    tp += "KW_CASE";
+                    break;
+                case Token_1.TipoToken.KW_CHAR:
+                    tp += "KW_CHAR";
+                    break;
+                case Token_1.TipoToken.KW_CONSOLE:
+                    tp += "KW_CONSOLE";
+                    break;
+                case Token_1.TipoToken.KW_CONTINUE:
+                    tp += "KW_CONTINUE";
+                    break;
+                case Token_1.TipoToken.KW_DO:
+                    tp += "KW_DO";
+                    break;
+                case Token_1.TipoToken.KW_DOUBLE:
+                    tp += "KW_DOUBLE";
+                    break;
+                case Token_1.TipoToken.KW_FALSE:
+                    tp += "KW_FALSE";
+                    break;
+                case Token_1.TipoToken.KW_FOR:
+                    tp += "KW_FOR";
+                    break;
+                case Token_1.TipoToken.KW_IF:
+                    tp += "KW_IF";
+                    break;
+                case Token_1.TipoToken.KW_INT:
+                    tp += "KW_INT";
+                    break;
+                case Token_1.TipoToken.KW_MAIN:
+                    tp += "KW_MAIN";
+                    break;
+                case Token_1.TipoToken.KW_RETURN:
+                    tp += "KW_RETURN";
+                    break;
+                case Token_1.TipoToken.KW_STRING:
+                    tp += "KW_STRING";
+                    break;
+                case Token_1.TipoToken.KW_SWITCH:
+                    tp += "KW_SWITCH";
+                    break;
+                case Token_1.TipoToken.KW_TRUE:
+                    tp += "KW_TRUE";
+                    break;
+                case Token_1.TipoToken.KW_VOID:
+                    tp += "KW_VOID";
+                    break;
+                case Token_1.TipoToken.KW_WHILE:
+                    tp += "KW_WHILE";
+                    break;
+                case Token_1.TipoToken.KW_WRITE:
+                    tp += "KW_WRITE";
+                    break;
+                case Token_1.TipoToken.NUMERO:
+                    tp += "NUMERO";
+                    break;
+                case Token_1.TipoToken.SYM_AND:
+                    tp += "SYM_AND";
+                    break;
+                case Token_1.TipoToken.SYM_COMA:
+                    tp += "SYM_COMA";
+                    break;
+                case Token_1.TipoToken.SYM_COMPARACION:
+                    tp += "SYM_COMPARACION";
+                    break;
+                case Token_1.TipoToken.SYM_DIFERENTFROM:
+                    tp += "SYM_DIFERENTFROM";
+                    break;
+                case Token_1.TipoToken.SYM_DIVISION:
+                    tp += "SYM_DIVISION";
+                    break;
+                case Token_1.TipoToken.SYM_IGUAL:
+                    tp += "SYM_IGUAL";
+                    break;
+                case Token_1.TipoToken.SYM_LLAVEDER:
+                    tp += "SYM_LLAVEDER";
+                    break;
+                case Token_1.TipoToken.SYM_LLAVEIZQ:
+                    tp += "SYM_LLAVEIZQ";
+                    break;
+                case Token_1.TipoToken.SYM_MAS:
+                    tp += "SYM_MAS";
+                    break;
+                case Token_1.TipoToken.SYM_MAYORIGUAL:
+                    tp += "SYM_MAYORIGUAL";
+                    break;
+                case Token_1.TipoToken.SYM_MAYORQUE:
+                    tp += "SYM_MAYORQUE";
+                    break;
+                case Token_1.TipoToken.SYM_MENORIGUAL:
+                    tp += "SYM_MENORIGUAL";
+                    break;
+                case Token_1.TipoToken.SYM_MENORQUE:
+                    tp += "SYM_MENORQUE";
+                    break;
+                case Token_1.TipoToken.SYM_MENOS:
+                    tp += "SYM_MENOS";
+                    break;
+                case Token_1.TipoToken.SYM_MULTIPLICACION:
+                    tp += "SYM_MULTIPLICACION";
+                    break;
+                case Token_1.TipoToken.SYM_NOT:
+                    tp += "SYM_NOT";
+                    break;
+                case Token_1.TipoToken.SYM_OR:
+                    tp += "SYM_OR";
+                    break;
+                case Token_1.TipoToken.SYM_PARENTESISDER:
+                    tp += "SYM_PARENTESISDER";
+                    break;
+                case Token_1.TipoToken.SYM_PARENTESISIZQ:
+                    tp += "SYM_PARENTESISIZQ";
+                    break;
+                case Token_1.TipoToken.SYM_PUNTO:
+                    tp += "SYM_PUNTO";
+                    break;
+                case Token_1.TipoToken.SYM_PUNTOYCOMA:
+                    tp += "SYM_PUNTOYCOMA";
+                    break;
+                case Token_1.TipoToken.KW_ELSE:
+                    tp += "KW_ELSE";
+                    break;
+                case Token_1.TipoToken.KW_DEFAULT:
+                    tp += "KW_DEFAULT";
+                    break;
+                case Token_1.TipoToken.CADENA_CHAR:
+                    tp += "CADENA_CHAR";
+                    break;
+                case Token_1.TipoToken.SYM_DOSPUNTOS:
+                    tp += "SYM_DOSPUNTOS";
+                    break;
+                case Token_1.TipoToken.ULTIMO:
+                    tp += "ULTIMO";
+                    break;
+            }
+        }
+        else {
+            tp += mensaje;
+        }
+        tp += ', se encontro: ' + this.preAnalisis.getTipo();
+        var wrong = new Token_1.Token(Token_1.TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        wrong.setDescripcion(tp);
+        console.log(wrong.tokenToString());
+        this.listaErrores.push(wrong);
+        if (this.preAnalisis.tipo != Token_1.TipoToken.ULTIMO) {
+            this.numPreAnalisis += 1;
+            this.preAnalisis = this.listaTokens[this.numPreAnalisis];
+        }
+        console.log(tp);
+        return tp;
+    };
+    AnalizadorSintactico.prototype.panicMode = function () {
+        this.flag_error = false;
+        var flag = true;
+        var size = this.listaTokens.length;
+        while (flag || this.numPreAnalisis < size) {
+            this.preAnalisis = this.listaTokens[this.numPreAnalisis];
+            console.log(this.preAnalisis.lexema);
+            if (this.preAnalisis.tipo == Token_1.TipoToken.SYM_PUNTOYCOMA || this.preAnalisis.tipo == Token_1.TipoToken.SYM_LLAVEDER) {
+                this.numPreAnalisis++;
+                this.preAnalisis = this.listaTokens[this.numPreAnalisis];
+                flag = false;
+                return;
+            }
+            this.numPreAnalisis++;
+        }
     };
     AnalizadorSintactico.prototype.printLista = function () {
         var size = this.listaTokens.length;

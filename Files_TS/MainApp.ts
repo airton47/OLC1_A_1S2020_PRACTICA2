@@ -15,7 +15,7 @@ class MainApp {
     salidajson: string = "";//salida de codigo html traducido a json
     entrada: string = "";//entrada para analizar
     lista: Array<Token> = [];//lista de tokens encontrado en texto
-    errores: Array<Token> = new Array<Token>();//erroes lexicos encontrados
+    errores: Array<Token> = new Array<Token>();//lista erroes lexicos encontrados
     reporte: string = "";//
     salidaTablaErroresHTML = "";//texto para archivo de errores lexicos y sintactivos
 
@@ -23,48 +23,76 @@ class MainApp {
         let cuerpoPhyton: string = "";
         let analizador = new AnalizadorLexico();
         //let text:string = "";
-        
 
-        analizador.analizar(text);
-        analizador.printLista();
+
+        analizador.analizar(text);//analiz0 lexicamente
+        analizador.printLista();//visulizo la lista de tokens
         let parser = new AnalizadorSintactico();
-        let list: Array<Token> = analizador.getListaTokens();
-        this.lista = this.removerErrores(list);
+        let list: Array<Token> = analizador.getListaTokens();//obtengo la lista de tokens del analizador
+        this.lista = this.removerErrores(list);//remuevo los tokens de error de la lista
 
-        parser.parsear(this.lista);
+        parser.parsear(this.lista);//analizo sintacticamente
 
-        let listaSentencias: Array<SentenciaInterface> = parser.listaSentencias;
+        let listaSentencias: Array<SentenciaInterface> = parser.listaSentencias;//obtengo la lista de sentencias
         let size = listaSentencias.length;
         //console.log("Elementos en lista de sentencias: "+size);
-        let sentencia:SentenciaInterface;
-        for (let i: number = 0; i < size; i++) {
-            sentencia = listaSentencias[i] ;
-            if(sentencia instanceof Comentario){
-                let flag:boolean = (sentencia as Comentario).isSingleLine;
-                if(flag == true){
+        let sentencia: SentenciaInterface;
+        for (let i: number = 0; i < size; i++) {//recorro la lista y obtengo salida traducida
+            sentencia = listaSentencias[i];
+            if (sentencia instanceof Comentario) {
+                let flag: boolean = (sentencia as Comentario).isSingleLine;
+                if (flag == true) {
                     cuerpoPhyton += sentencia.printSentencia();
-                }else{
-                    cuerpoPhyton +='\n'+ sentencia.printSentencia();
+                } else {
+                    cuerpoPhyton += '\n' + sentencia.printSentencia();
                 }
-                
-            }else{
-                cuerpoPhyton += '\n'+ sentencia.printSentencia();
+
+            } else {
+                cuerpoPhyton += '\n' + sentencia.printSentencia();
             }
         }
-        console.log(cuerpoPhyton);
-        this.listaSentencias = parser.listaGeneralSentencias;
-        this.salidapython = cuerpoPhyton;
+        console.log(cuerpoPhyton);//imprimo la lista traducida
+        this.listaSentencias = parser.listaGeneralSentencias;//guardo la lista de sentencias en variable de main
+        this.salidapython = cuerpoPhyton;//guardo salida de python en variable de main
         console.log("Elementos en lista de sentencias: " + size);
-        this.salidaTablaVariablesHTML = this.generarReporteTablaVariables();
-        this.salidahtml = this.generarSalidaHtml(analizador.lista);
-        console.log();
-        this.generarSalidaJson(analizador.lista);
-
+        console.log('Nummero de errores encontrados: '+parser.listaErrores.length);
+        this.salidaTablaVariablesHTML = this.generarReporteTablaVariables();//genero texto html de tabla con las variables
+        this.salidahtml = this.generarSalidaHtml(analizador.lista);//guardo cadena de html en variable de main
+       
+        this.generarSalidaJson(analizador.lista);//genero y guardo de formato json traducido del html
+        this.generarReporteErrores(this.errores, parser.listaErrores);
     }
 
-    generarReporteErrores(): string {
-        let html: string = "";
+    generarReporteErrores(lexicos: Array<Token>, sintacticos: Array<Token>): string {
+        let html: string = "\n<html>";
+        html += "\n<head>";
+        html += "\n<style> table, td, th { border: 1px solid #ddd;    text-align: center;} table {border-collapse: collapse;    width: 100%;} th, td { padding: 15px;} </style>";
+        html += "\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
+        html += "\n<title>" + "REPORTES DE ERRORES" + "</title>";
+        html += "\n</head>";
+        html += "\n<body>";
+        html += "\n<table>";
 
+        html += "\n<tr><td> NO. </td> <td>TIPO ERROR</td> <td>LINEA </td> <td>COLUMNA</td> <td>DESCRIPCION</td></tr>";
+        let size: number = lexicos.length;
+        let token:Token;
+        let contador:number = 1;
+        for (let i: number = 0; i < size; i++) {
+            token = lexicos[i];
+            html += "\n<tr><td>"+contador+" </td> <td>LEXICO</td> <td>"+token.linea+"</td> <td>"+token.columna+"</td> <td>El simbolo: "+token.lexema+" no pertenece al lenguaje</td></tr>";
+            contador++;
+        }
+        let size1:number = sintacticos.length;
+        let token1:Token;
+        for (let i: number = 0; i < size1; i++) {
+            token1 = lexicos[i];
+            //html += "\n<tr><td>"+contador+" </td> <td>SINTACTICO</td> <td>"+token1.linea+"</td> <td>"+token1.columna+"</td> <td>"+token1.descripcion+"</td></tr>";
+            contador++;
+        }
+        html += ("\n</table>");
+        html += "\n</body>";
+        html += "\n</html>"
+        this.salidaTablaErroresHTML = html;
         return html;
     }
 
@@ -79,7 +107,7 @@ class MainApp {
                 //text = text.replace("'", "");
                 //text = text.replace("'", "");
                 var re = /'/g;
-                var resultado = text.replace(re,"");
+                var resultado = text.replace(re, "");
                 html = resultado;
                 break;
             }
@@ -98,7 +126,7 @@ class MainApp {
                 //text = text.replace("'", "");
                 //text = text.replace("'", "");
                 var re = /'/g;
-                var resultado = text.replace(re,"");
+                var resultado = text.replace(re, "");
                 html = resultado;
                 break;
             }
@@ -265,7 +293,10 @@ class MainApp {
 }
 export = MainApp;
 let var_main = new MainApp();
-let entrada: string = '';//
+let entrada: string = 'Console.Write("El analisis comenzara!");';
+entrada += 'int a  123';
+entrada += 'int analisis = 13;';
+entrada += 'int anular = 0;';
 var_main.main(entrada);
 let python: string = var_main.salidapython;
 
@@ -275,44 +306,39 @@ var resultado = cadena.replace(re, '');
 console.log(resultado);
 
 
-//const fs = require('fs');
+
 /*
 
 const fs = require('fs');
 var var_main = new MainApp();
 let entrada = 'Console.Write("Comienza el analisis");';
-fs.readFile('entrada.cs','utf-8',(error,datos)=>{
-    if(error){
+fs.readFile('entrada.cs', 'utf-8', (error, datos) => {
+    if (error) {
         throw error;
-    }else{
+    } else {
         entrada += datos.toString();
-        //var_main.main(entrada);
+        var_main.main(entrada);
         var python = var_main.salidapython;
-        console.log(python);
+        //console.log(python);
+        //Genera la archivo con tabla de variables encontradas
+        var tablavariables = var_main.salidaTablaVariablesHTML;
+        fs.writeFile('variables.html', tablavariables, (error) => {
+            if (error) {
+                throw error;
+            }
+            console.log("El reporte de variables ha sido creado con exito");
+        });
+        //Genera archivo con tabla de errores encontrados durante el analisis
+        var tablaErrores = var_main.salidaTablaErroresHTML;
+        fs.writeFile('errores.html', tablaErrores, (error) => {
+            if (error) {
+                throw error;
+            }
+            console.log("El reporte de errores ha sido creado con exito");
+        });        
     }
 });
 
-
-
-
-
-fs.readFile('entrada.cs','utf-8',(error,datos)=>{
-    if(error){
-        throw error;
-    }else{
-        console.log(datos);
-    }
-
-});
-
-var tablavariables = var_main.salidaTablaVariablesHTML;
-fs.appendFile('reporte.html',tablavariables,(error)=>{
-    if(error){
-        throw error;
-
-    }
-    console.log("El reporte ha sido creado con exito");
-});
 */
 
 

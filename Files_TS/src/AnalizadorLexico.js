@@ -154,10 +154,10 @@ var AnalizadorLexico = /** @class */ (function () {
                     }
                     else if (chr == "#" && i == size - 1) {
                         this.writeSalida("*********El analisis lexico de la entrada ha finalizado*********");
-                        (_a = this.lista) === null || _a === void 0 ? void 0 : _a.push(new Token_1.Token(Token_1.TipoToken.ULTIMO, ""));
+                        (_a = this.lista) === null || _a === void 0 ? void 0 : _a.push(new Token_1.Token(Token_1.TipoToken.ULTIMO, "", 0, 0, ""));
                     }
                     else if (chr == "\n" || chr == "\t" || chr == "\r" || chr == " ") {
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -251,7 +251,7 @@ var AnalizadorLexico = /** @class */ (function () {
                     if (chr != "*") {
                         this.auxLex += chr;
                         this.estado = 7;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -270,7 +270,7 @@ var AnalizadorLexico = /** @class */ (function () {
                     else {
                         this.auxLex += chr;
                         this.estado = 7;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -385,7 +385,7 @@ var AnalizadorLexico = /** @class */ (function () {
                     if (chr != "\"") {
                         this.auxLex += chr;
                         this.estado = 12;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -403,7 +403,7 @@ var AnalizadorLexico = /** @class */ (function () {
                     }
                     else {
                         this.auxLex += chr;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -432,7 +432,7 @@ var AnalizadorLexico = /** @class */ (function () {
                     }
                     else {
                         this.auxLex += chr;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -442,7 +442,7 @@ var AnalizadorLexico = /** @class */ (function () {
                 case 15:
                     if (chr != "'") {
                         this.auxLex += chr;
-                        if (chr == "\n" || chr == "\r") {
+                        if (chr == "\n") {
                             linea++;
                             columna = 0;
                         }
@@ -459,7 +459,7 @@ var AnalizadorLexico = /** @class */ (function () {
                         this.addToken(Token_1.TipoToken.SYM_AND, this.auxLex, linea, columna);
                     }
                     else {
-                        this.addToken(Token_1.TipoToken.ERROR, chr.toString(), linea, columna);
+                        this.addToken(Token_1.TipoToken.ERROR, "&", linea, columna);
                         i = i - 1;
                     }
                     break;
@@ -469,7 +469,7 @@ var AnalizadorLexico = /** @class */ (function () {
                         this.addToken(Token_1.TipoToken.SYM_OR, this.auxLex, linea, columna);
                     }
                     else {
-                        this.addToken(Token_1.TipoToken.ERROR, chr.toString(), linea, columna);
+                        this.addToken(Token_1.TipoToken.ERROR, "|", linea, columna);
                         i = i - 1;
                     }
                     break;

@@ -3,6 +3,7 @@ class Token {
     lexema: string;
     linea: number;
     columna: number;
+    descripcion: string;
 
     public getTipoToken(): TipoToken {
         return this.tipo;
@@ -10,6 +11,7 @@ class Token {
 
     constructor(Tipo: TipoToken, lexema: string, linea?: number, columna?: number) {
         this.tipo = Tipo;
+        
         this.lexema = lexema;
         if (linea == undefined) {
             this.linea = 0;
@@ -21,6 +23,11 @@ class Token {
         } else {
             this.columna = columna;
         }
+        this.descripcion = "";
+    }
+
+    public setDescripcion(desc:string):void{
+        this.descripcion = desc;
     }
 
     public getTipo(): string {
@@ -185,6 +192,9 @@ class Token {
             case TipoToken.ULTIMO:
                 tp = "ULTIMO";
                 break;
+            case TipoToken.ERRORS:
+                tp = "ERRORS";
+                break;
         }
 
         return tp;
@@ -205,6 +215,6 @@ enum TipoToken {
     SYM_PARENTESISIZQ, SYM_PARENTESISDER, SYM_LLAVEIZQ, SYM_LLAVEDER, SYM_PUNTO,
     KW_BREAK, KW_CONTINUE, KW_RETURN, KW_CONSOLE, KW_WRITE, KW_DO, KW_FOR, KW_WHILE,
     KW_IF, KW_SWITCH, KW_CASE, KW_VOID, KW_MAIN, ERROR, KW_TRUE, KW_FALSE, KW_ELSE, KW_DEFAULT,
-    ULTIMO, CADENA_CHAR
+    ULTIMO, CADENA_CHAR, ERRORS
 };
 export { Token, TipoToken };
