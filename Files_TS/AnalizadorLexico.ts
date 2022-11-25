@@ -138,7 +138,7 @@ class AnalizadorLexico {
                         colaux = columna;
                     } else if (chr == "#" && i == size - 1) {
                         this.writeSalida("*********El analisis lexico de la entrada ha finalizado*********");
-                        this.lista?.push(new Token(TipoToken.ULTIMO,"",0,0,""));
+                        this.lista?.push(new Token(TipoToken.ULTIMO,"",0,0));
                     } else if (chr == "\n" || chr == "\t" || chr == "\r" || chr == " ") {
                         if (chr == "\n") {
                             linea++;

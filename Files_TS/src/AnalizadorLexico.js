@@ -154,7 +154,7 @@ var AnalizadorLexico = /** @class */ (function () {
                     }
                     else if (chr == "#" && i == size - 1) {
                         this.writeSalida("*********El analisis lexico de la entrada ha finalizado*********");
-                        (_a = this.lista) === null || _a === void 0 ? void 0 : _a.push(new Token_1.Token(Token_1.TipoToken.ULTIMO, "", 0, 0, ""));
+                        (_a = this.lista) === null || _a === void 0 ? void 0 : _a.push(new Token_1.Token(Token_1.TipoToken.ULTIMO, "", 0, 0));
                     }
                     else if (chr == "\n" || chr == "\t" || chr == "\r" || chr == " ") {
                         if (chr == "\n") {

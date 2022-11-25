@@ -20,6 +20,7 @@ class MainApp {
     salidaTablaErroresHTML = "";//texto para archivo de errores lexicos y sintactivos
     salidaErroresLexicos = "";
     salidaErroresSintacticos = "";
+    salidaCadenaHTML: string = "";
 
     analizar(text: string): void {
         let cuerpoPhyton: string = "";
@@ -59,10 +60,11 @@ class MainApp {
         console.log("Elementos en lista de sentencias: " + size);
         console.log('Nummero de errores encontrados: '+parser.listaErrores.length);
         this.salidaTablaVariablesHTML = this.generarReporteTablaVariables();//genero texto html de tabla con las variables
-        this.salidahtml = this.generarSalidaHtml(analizador.lista);//guardo cadena de html en variable de main
-       
+        //this.generarSalidaHtml(analizador.lista);//guardo cadena de html en variable de main
+        let sintact_err:Array<Token> = parser.listaErrores;
+        this.generarSalidaHtml(analizador.lista);
         this.generarSalidaJson(analizador.lista);//genero y guardo de formato json traducido del html
-        this.generarReporteErrores(this.errores, parser.listaErrores);
+        this.generarReporteErrores(this.errores, sintact_err);
     }
 
     generarReporteErrores(lexicos: Array<Token>, sintacticos: Array<Token>): string {
@@ -87,8 +89,8 @@ class MainApp {
         let size1:number = sintacticos.length;
         let token1:Token;
         for (let i: number = 0; i < size1; i++) {
-            token1 = lexicos[i];
-            //html += "\n<tr><td>"+contador+" </td> <td>SINTACTICO</td> <td>"+token1.linea+"</td> <td>"+token1.columna+"</td> <td>"+token1.descripcion+"</td></tr>";
+            token1 = sintacticos[i];
+            html += "\n<tr><td>"+contador+" </td> <td>SINTACTICO</td> <td>"+token1.linea+"</td> <td>"+token1.columna+"</td> <td>"+token1.descripcion+"</td></tr>";
             contador++;
         }
         html += ("\n</table>");
@@ -114,6 +116,8 @@ class MainApp {
                 break;
             }
         }
+        this.salidaCadenaHTML += html;
+        console.log(this.salidaCadenaHTML);
         return html;
     }
 
@@ -132,7 +136,7 @@ class MainApp {
                 html = resultado;
                 break;
             }
-        }
+        }        
         let salidajson = html;
 
         var re = /<html>/g;
@@ -151,11 +155,11 @@ class MainApp {
         var resultado = salidajson.replace(re, '},');
         salidajson = resultado;
 
-        var re = /<tittle>/g;
-        var resultado = salidajson.replace(re, '"tittle":{\n\t\t\t"TEXTO":');
+        var re = /<title>/g;
+        var resultado = salidajson.replace(re, '"title":{\n\t\t\t"TEXTO":');
         salidajson = resultado;
 
-        var re = /<[/]tittle>/g;
+        var re = /<[/]title>/g;
         var resultado = salidajson.replace(re, '\n\t\t}');
         salidajson = resultado;
 
@@ -243,7 +247,7 @@ class MainApp {
         var resultado = salidajson.replace(re, ',');
         salidajson = resultado;
 
-
+        this.salidajson = salidajson;
         console.log(salidajson);
         return salidajson;
     }
@@ -327,17 +331,42 @@ fs.readFile('entrada.cs', 'utf-8', (error, datos) => {
         fs.writeFile('variables.html', tablavariables, (error) => {
             if (error) {
                 throw error;
+            }else{
+                console.log("El reporte de variables ha sido creado con exito");
             }
-            console.log("El reporte de variables ha sido creado con exito");
+            
         });
         //Genera archivo con tabla de errores encontrados durante el analisis
         var tablaErrores = var_main.salidaTablaErroresHTML;
         fs.writeFile('errores.html', tablaErrores, (error) => {
             if (error) {
                 throw error;
+            }else{
+                console.log("El reporte de errores ha sido creado con exito");
             }
-            console.log("El reporte de errores ha sido creado con exito");
-        });        
+            
+        });
+
+        var reportehtml = var_main.salidaCadenaHTML;
+        fs.writeFile('cadenas_html.html', reportehtml, (error) => {
+            if (error) {
+                throw error;
+            }else{
+                console.log("El reporte de cadenas html ha sido creado con exito");
+            }
+            
+        });
+
+        var cadena_json = var_main.salidajson;
+        fs.writeFile('traduccion_json.json', cadena_json, (error) => {
+            if (error) {
+                throw error;
+            }else{
+                console.log("El reporte de traduccion a JSON ha sido creado con exito");
+            }
+            
+        });
+
     }
 });
 

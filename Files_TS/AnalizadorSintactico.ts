@@ -26,7 +26,7 @@ class AnalizadorSintactico {
     tipo_dec: string;
     linea: number;
     listaGeneralSentencias: Array<SentenciaInterface>;
-    listaErrores: Array<Token> = [];
+    listaErrores: Array<Token>;
 
     constructor() {
         this.listaSentencias = new Array<Sentencia>();
@@ -34,6 +34,7 @@ class AnalizadorSintactico {
         this.flag_error = false;
         this.tipo_dec = "";
         this.linea = 0;
+        this.listaErrores = new Array<Token>();
         //this.listaErrores = new Array<Token>();
         this.listaGeneralSentencias = new Array<SentenciaInterface>();
         //this.preAnalisis = new Token(TipoToken.ULTIMO, "");
@@ -1512,10 +1513,12 @@ class AnalizadorSintactico {
         }
 
         tp += ', se encontro: ' + this.preAnalisis.getTipo();
-        let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
-        wrong.setDescripcion(tp);
-        console.log(wrong.tokenToString());
-        this.listaErrores.push(wrong);
+        //let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        let txt:string = 'Se esperaba: '+tp
+        this.preAnalisis.setDescripcion(txt);
+        this.listaErrores.push(this.preAnalisis);
+        console.log(this.preAnalisis.tokenToString());
+        
         return tp;
     }
 
@@ -1688,10 +1691,12 @@ class AnalizadorSintactico {
         }
 
         tp += ', se encontro: ' + this.preAnalisis.getTipo();
-        let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
-        wrong.setDescripcion(tp);
-        console.log(wrong.tokenToString());
-        this.listaErrores.push(wrong);
+        //let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        let txt:string = 'Se esperaba: '+tp
+        this.preAnalisis.setDescripcion(txt);
+        this.listaErrores.push(this.preAnalisis);
+        console.log(this.preAnalisis.tokenToString());
+        
         if (this.preAnalisis.tipo != TipoToken.ULTIMO) {
             this.numPreAnalisis += 1;
             this.preAnalisis = this.listaTokens[this.numPreAnalisis];

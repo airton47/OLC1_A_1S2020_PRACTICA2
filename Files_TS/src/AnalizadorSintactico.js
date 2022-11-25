@@ -19,12 +19,12 @@ var SentenciaCase_1 = __importDefault(require("./SentenciaCase"));
 var SentenciaSwitch_1 = __importDefault(require("./SentenciaSwitch"));
 var AnalizadorSintactico = /** @class */ (function () {
     function AnalizadorSintactico() {
-        this.listaErrores = [];
         this.listaSentencias = new Array();
         this.numPreAnalisis = 0;
         this.flag_error = false;
         this.tipo_dec = "";
         this.linea = 0;
+        this.listaErrores = new Array();
         //this.listaErrores = new Array<Token>();
         this.listaGeneralSentencias = new Array();
         //this.preAnalisis = new Token(TipoToken.ULTIMO, "");
@@ -1460,10 +1460,11 @@ var AnalizadorSintactico = /** @class */ (function () {
             tp = mensaje;
         }
         tp += ', se encontro: ' + this.preAnalisis.getTipo();
-        var wrong = new Token_1.Token(Token_1.TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
-        wrong.setDescripcion(tp);
-        console.log(wrong.tokenToString());
-        this.listaErrores.push(wrong);
+        //let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        var txt = 'Se esperaba: ' + tp;
+        this.preAnalisis.setDescripcion(txt);
+        this.listaErrores.push(this.preAnalisis);
+        console.log(this.preAnalisis.tokenToString());
         return tp;
     };
     AnalizadorSintactico.prototype.reportError = function (tipo, mensaje) {
@@ -1635,10 +1636,11 @@ var AnalizadorSintactico = /** @class */ (function () {
             tp += mensaje;
         }
         tp += ', se encontro: ' + this.preAnalisis.getTipo();
-        var wrong = new Token_1.Token(Token_1.TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
-        wrong.setDescripcion(tp);
-        console.log(wrong.tokenToString());
-        this.listaErrores.push(wrong);
+        //let wrong: Token = new Token(TipoToken.ERROR, this.preAnalisis.lexema, this.preAnalisis.linea, this.preAnalisis.columna);
+        var txt = 'Se esperaba: ' + tp;
+        this.preAnalisis.setDescripcion(txt);
+        this.listaErrores.push(this.preAnalisis);
+        console.log(this.preAnalisis.tokenToString());
         if (this.preAnalisis.tipo != Token_1.TipoToken.ULTIMO) {
             this.numPreAnalisis += 1;
             this.preAnalisis = this.listaTokens[this.numPreAnalisis];
